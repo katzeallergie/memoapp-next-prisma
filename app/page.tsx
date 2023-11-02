@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useState } from "react";
-import { Button, Card, Input, Table } from "@nextui-org/react";
+import { Button, Input } from "@nextui-org/react";
 
 interface DataType {
   key: string;
@@ -12,7 +12,7 @@ interface DataType {
 
 export default function Home() {
   const [content, setContent] = useState("");
-  const [dataSource, setDataSource] = useState("");
+  const [dataSource, setDataSource] = useState<DataType[]>([]);
 
   useEffect(() => {
     const fetchMemos = async () => {
@@ -35,10 +35,10 @@ export default function Home() {
       },
       body: JSON.stringify({ content }),
     });
+    console.log(response);
 
     const memos = await response.json();
     setDataSource(memos);
-
     setContent("");
   };
 
@@ -53,16 +53,29 @@ export default function Home() {
 
   return (
     <div className="h-screen p-5">
-      MemoApp
-      <Input
-        label="content"
-        key="default"
-        color="default"
-        onChange={handleInputChange}
-      ></Input>
-      <Button onClick={handleSaveClick}>作成</Button>
-      <div>めも１</div>
-      <div>めも２</div>
+      <h1>クソ雑MemoApp</h1>
+      <div className="flex mt-2">
+        <Input
+          label="content"
+          key="default"
+          color="default"
+          className="mr-2"
+          onChange={handleInputChange}
+        ></Input>
+        <Button onClick={handleSaveClick} className="h-max">
+          作成
+        </Button>
+      </div>
+      <div className="">
+        {dataSource.map((data) => {
+          return (
+            <div key={data.key} className="d-flex w-full mt-2">
+              <span className="mr-2 w-1/2">{data.content}</span>
+              <Button onClick={() => handleDeleteClick(data.id)}>削除</Button>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
