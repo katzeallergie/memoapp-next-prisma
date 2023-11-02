@@ -35,7 +35,6 @@ export default function Home() {
       },
       body: JSON.stringify({ content }),
     });
-    console.log(response);
 
     const memos = await response.json();
     setDataSource(memos);
@@ -60,6 +59,7 @@ export default function Home() {
           key="default"
           color="default"
           className="mr-2"
+          value={content}
           onChange={handleInputChange}
         ></Input>
         <Button onClick={handleSaveClick} className="h-max">

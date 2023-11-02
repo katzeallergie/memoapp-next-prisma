@@ -1,0 +1,14 @@
+volumes:
+  db-data:
+
+services:
+  db:
+    image: postgres:14
+    container_name: prisma-db
+    volumes:
+      - db-data:/var/lib/postgresql/prisma-db/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
