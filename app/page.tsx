@@ -76,13 +76,6 @@ export default function Home() {
           );
         })}
       </div>
-      <div>
-        <input
-          onBlur={() => {
-            alert("onblur");
-          }}
-        ></input>
-      </div>
     </div>
   );
 }
