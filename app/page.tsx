@@ -9,7 +9,13 @@ import {
   CardHeader,
   Divider,
   Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
   Textarea,
+  useDisclosure,
 } from '@nextui-org/react';
 
 interface DataType {
@@ -68,32 +74,59 @@ export default function Home() {
     setDataSource(memos);
   };
 
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
   return (
     <div className="h-screen p-5">
       <h1>クソ雑MemoApp</h1>
-      <div className="mt-2">
-        <Input
-          label="Title"
-          key="default"
-          color="default"
-          value={title}
-          onChange={handleTitleChange}
-        ></Input>
-        <Textarea
-          label="Content"
-          placeholder="Enter content"
-          className="mt-2"
-          value={content}
-          onChange={handleContentChange}
-        ></Textarea>
-        <Button onClick={handleSaveClick} className="mt-2" color="primary">
-          作成
-        </Button>
-      </div>
+      <Button onPress={onOpen} color='primary' className="max-w-fit mt-2">
+        メモを追加
+      </Button>
+      <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                メモを追加
+              </ModalHeader>
+              <ModalBody>
+                <Input
+                  label="Title"
+                  key="default"
+                  color="default"
+                  value={title}
+                  onChange={handleTitleChange}
+                ></Input>
+                <Textarea
+                  label="Content"
+                  placeholder="Enter content"
+                  className="mt-2"
+                  value={content}
+                  onChange={handleContentChange}
+                ></Textarea>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" onPress={onClose}>
+                  閉じる
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleSaveClick();
+                    onClose();
+                  }}
+                  color="primary"
+                >
+                  作成
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
       <div className="mt-4">
         {dataSource.map((data) => {
           return (
-            <div key={data.key} className="d-flex w-full mt-2">
+            <div key={data.key} className="d-flex w-full mt-4">
               <Card>
                 <CardHeader>
                   <div className="">{data.title}</div>
@@ -104,7 +137,6 @@ export default function Home() {
                 </CardBody>
                 <Divider />
                 <CardFooter>
-                  {' '}
                   <Button
                     color="danger"
                     onClick={() => handleDeleteClick(data.id)}
