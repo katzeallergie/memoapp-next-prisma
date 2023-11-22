@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && prisma db push &&  next build",
-    "build:prod": "NODE_ENV=prod generate && prisma db push &&  next build",
+    "build:prod": "NODE_ENV=prod prisma generate && prisma db push &&  next build",
     "start": "next start",
     "local": "NODE_ENV=local next dev",
     "prod": "NODE_ENV=prod next start",
