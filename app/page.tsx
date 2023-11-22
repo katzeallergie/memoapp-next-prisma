@@ -28,6 +28,9 @@ export default function Home() {
   };
 
   const handleSaveClick = async () => {
+    if (content == "") {
+      return;
+    }
     const response = await fetch("/api/memos", {
       method: "POST",
       headers: {
@@ -55,7 +58,7 @@ export default function Home() {
       <h1>クソ雑MemoApp</h1>
       <div className="flex mt-2">
         <Input
-          label="content"
+          label="Content"
           key="default"
           color="default"
           className="mr-2"
@@ -71,6 +74,7 @@ export default function Home() {
           return (
             <div key={data.key} className="d-flex w-full mt-2">
               <span className="mr-2 w-1/2">{data.content}</span>
+              <Button className="mr-2" onClick={() => handleDeleteClick(data.id)}>編集</Button>
               <Button onClick={() => handleDeleteClick(data.id)}>削除</Button>
             </div>
           );
