@@ -8,9 +8,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = "postgres://default:rsHGjM7UWY0J@ep-ancient-grass-70290135-pooler.us-east-1.postgres.vercel-storage.com:5432/verceldb?pgbouncer=true&connect_timeout=15"
-  directUrl = "postgres://default:rsHGjM7UWY0J@ep-ancient-grass-70290135.us-east-1.postgres.vercel-storage.com:5432/verceldb"
-  shadowDatabaseUrl= "postgres://default:rsHGjM7UWY0J@ep-ancient-grass-70290135.us-east-1.postgres.vercel-storage.com:5432/verceldb"
+  url = "postgres://default:VYTJtIk6On7F@ep-white-water-08341662-pooler.us-east-1.postgres.vercel-storage.com:5432/verceldb?pgbouncer=true&connect_timeout=15"
+  directUrl = "postgres://default:VYTJtIk6On7F@ep-white-water-08341662.us-east-1.postgres.vercel-storage.com:5432/verceldb"
+  shadowDatabaseUrl= "postgres://default:VYTJtIk6On7F@ep-white-water-08341662.us-east-1.postgres.vercel-storage.com:5432/verceldb"
 }
 
 model memos {

@@ -9,7 +9,7 @@
     "start": "next start",
     "local": "next dev",
     "lint": "next lint",
-    "postinstall": "prisma generate --schema=./prisma/dev/schema.prisma --force"
+    "postinstall": "prisma generate --schema=./prisma/dev/schema.prisma"
   },
   "dependencies": {
     "@nextui-org/react": "^2.1.13",
