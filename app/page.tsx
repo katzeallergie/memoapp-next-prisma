@@ -77,12 +77,19 @@ export default function Home() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (
-    <div className="h-screen p-5">
-      <h1>クソ雑MemoApp</h1>
-      <Button onPress={onOpen} color='primary' className="max-w-fit mt-2">
-        メモを追加
-      </Button>
-      <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
+    <div className="h-screen p-8">
+      <h1 className="text-xl text-center">クソ雑MemoApp</h1>
+      <div className="w-full my-6 flex">
+        <Button
+          onPress={onOpen}
+          color="primary"
+          className="ml-auto mr-0 mt-0 mb-0"
+        >
+          メモを追加
+        </Button>
+      </div>
+
+      <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange} className='m-4'>
         <ModalContent>
           {(onClose) => (
             <>
