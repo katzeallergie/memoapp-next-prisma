@@ -1,0 +1,20 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+    previewFeatures = ["jsonProtocol"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url = "postgres://default:nhuC7FPv3rwL@ep-ancient-grass-70290135-pooler.us-east-1.postgres.vercel-storage.com/verceldb?pgbouncer=true&connect_timeout=15"
+  directUrl = "postgres://default:nhuC7FPv3rwL@ep-ancient-grass-70290135.us-east-1.postgres.vercel-storage.com/verceldb"
+  shadowDatabaseUrl= "postgres://default:nhuC7FPv3rwL@ep-ancient-grass-70290135.us-east-1.postgres.vercel-storage.com/verceldb"
+}
+
+model memos {
+  id Int @id @default(autoincrement())
+  content String
+  createdAt DateTime @default(now())
+}
