@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && prisma db push &&  next build",
+    "build:prod": "NODE_ENV=prod generate && prisma db push &&  next build",
     "start": "next start",
+    "local": "NODE_ENV=local next dev",
+    "prod": "NODE_ENV=prod next start",
     "lint": "next lint",
     "postinstall": "prisma generate"
   },
@@ -19,8 +22,8 @@
     "react-dom": "^18"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
+    "@types/node": "20.9.4",
+    "@types/react": "18.2.38",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
@@ -28,6 +31,6 @@
     "postcss": "^8",
     "prisma": "^5.5.2",
     "tailwindcss": "^3.3.0",
-    "typescript": "^5"
+    "typescript": "5.3.2"
   }
 }
