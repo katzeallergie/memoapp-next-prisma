@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate --schema=./prisma/schema.prisma && prisma db push --schema=./prisma/schema.prisma && next build",
-    "build:prod": "prisma generate --schema=./prisma/dev/schema.prisma && prisma db push --schema=./prisma/dev/schema.prisma &&  next build",
+    "build": "prisma generate --schema=./prisma/schema.prisma && prisma migrate deploy --schema=./prisma/schema.prisma && next build",
+    "build:prod": "prisma generate --schema=./prisma/dev/schema.prisma && prisma migrate deploy --schema=./prisma/dev/schema.prisma &&  next build",
     "start": "next start",
     "local": "next dev",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate --schema=./prisma/dev/schema.prisma"
   },
   "dependencies": {
     "@nextui-org/react": "^2.1.13",
