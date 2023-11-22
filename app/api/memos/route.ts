@@ -9,10 +9,11 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const { content } = await request.json();
+  const { title, content } = await request.json();
 
   await prisma.memos.create({
     data: {
+      title: title,
       content: content,
     },
   });
