@@ -7,7 +7,7 @@
     "build": "prisma generate --schema=./prisma/schema.prisma && prisma db push --schema=./prisma/schema.prisma && next build",
     "build:prod": "prisma generate --schema=./prisma/dev/schema.prisma && prisma db push --schema=./prisma/dev/schema.prisma &&  next build",
     "start": "next start",
-    "local": "NODE_ENV=local next dev",
+    "local": "next dev",
     "lint": "next lint",
     "postinstall": "prisma generate"
   },
