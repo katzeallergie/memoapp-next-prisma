@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(memos);
 }
 
-export async function getAllMemos() {
+async function getAllMemos() {
   const memos = await prisma.memos.findMany({
     orderBy: {
       createdAt: 'desc',

@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllMemos } from '../memos/route';
 
 const prisma = new PrismaClient();
 
@@ -41,3 +40,12 @@ export async function GET(request: NextRequest) {
   });
   return NextResponse.json(memo);
 }
+
+async function getAllMemos() {
+    const memos = await prisma.memos.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    return memos;
+  }
