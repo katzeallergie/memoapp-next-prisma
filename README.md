@@ -25,27 +25,33 @@ npm run start or npm run dev
 
 本番環境で `transactions` テーブルが存在しない場合、以下のコマンドでマイグレーションを手動実行してください：
 
-### 1. Vercel 関数での実行 (推奨)
+### ⚠️ マイグレーション競合エラーの解決
+
+本番環境で「relation "memos" already exists」エラーが発生した場合：
+
+#### 方法 1: マイグレーション履歴をリセット（推奨）
 
 ```bash
-# Vercelの本番環境で実行
-npx prisma migrate deploy --schema=./prisma/dev/schema.prisma
+# 1. マイグレーション履歴をリセット
+npx prisma migrate resolve --applied 20231102102952_init
+npx prisma migrate resolve --applied 20231122140849_add_title
+
+# 2. 新しいマイグレーションのみ実行
+npx prisma migrate deploy
 ```
 
-### 2. ローカルから本番 DB に接続して実行
+#### 方法 2: データベースを完全リセット（危険 - データ消失）
 
 ```bash
-# 本番環境のDATABASE_URLを設定してから実行
-npm run db:migrate:prod
+# ⚠️ 全データが削除されます
+npx prisma migrate reset --force
 ```
 
-### 3. 手動 SQL 実行 (最終手段)
-
-本番データベースに直接接続して以下の SQL を実行：
+#### 方法 3: 手動で transactions テーブルのみ作成
 
 ```sql
--- CreateTable
-CREATE TABLE "transactions" (
+-- 本番データベースに直接実行
+CREATE TABLE IF NOT EXISTS "transactions" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
@@ -55,13 +61,25 @@ CREATE TABLE "transactions" (
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "transactions_pkey" PRIMARY KEY ("id")
 );
+
+-- マイグレーション履歴に記録
+INSERT INTO "_prisma_migrations" (id, checksum, finished_at, migration_name, logs, rolled_back_at, started_at, applied_steps_count)
+VALUES (
+    '20250607144230_add_transactions_table',
+    'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    NOW(),
+    '20250607144230_add_transactions_table',
+    '',
+    NULL,
+    NOW(),
+    1
+) ON CONFLICT (id) DO NOTHING;
 ```
 
-## 解決済みの問題
+### 1. Vercel 関数での実行 (推奨)
 
-- ✅ Prisma 警告：`--no-engine` フラグを build:prod に追加
-- ✅ マイグレーション追加：`transactions` テーブル用のマイグレーションファイルを作成
-- ✅ デプロイ設定：本番環境で確実にマイグレーションが実行されるように修正
+```
+
+```
