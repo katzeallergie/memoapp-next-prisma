@@ -51,19 +51,9 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      try {
-        const response = await fetch('/api/transactions');
-        if (response.ok) {
-          const data = await response.json();
-          setTransactions(Array.isArray(data) ? data : []);
-        } else {
-          console.error('Failed to fetch transactions');
-          setTransactions([]);
-        }
-      } catch (error) {
-        console.error('Error fetching transactions:', error);
-        setTransactions([]);
-      }
+      const response = await fetch('/api/transactions');
+      const data = await response.json();
+      setTransactions(data);
     };
     fetchTransactions();
   }, []);
