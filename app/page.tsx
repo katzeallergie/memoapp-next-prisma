@@ -121,7 +121,7 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen p-8">
+    <div className="h-screen p-8 overflow-y-auto">
       <h1 className="text-xl text-center mb-6">クソ雑MemoApp</h1>
 
       {/* ナビゲーション */}

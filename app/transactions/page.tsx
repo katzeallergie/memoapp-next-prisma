@@ -18,6 +18,12 @@ import {
   SelectItem,
   Textarea,
   Chip,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
 } from '@nextui-org/react';
 
 interface TransactionType {
@@ -177,6 +183,7 @@ export default function TransactionsPage() {
 
   const [isOpenCreateModal, setIsOpenCreateModal] = useState(false);
   const [isOpenUpdateModal, setIsOpenUpdateModal] = useState(false);
+  const [isTableView, setIsTableView] = useState(false);
 
   const onOpenCreateModal = () => setIsOpenCreateModal(true);
   const onOpenUpdateModal = () => setIsOpenUpdateModal(true);
@@ -197,68 +204,19 @@ export default function TransactionsPage() {
   const balance = totalIncome - totalExpense;
 
   return (
-    <div className="h-screen p-8">
-      <h1 className="text-xl text-center mb-6">浦上 副業収支表</h1>
+    <div className="h-screen p-8 overflow-y-auto">
+      <h1 className="text-xl text-center mb-6 text-gray-900 dark:text-gray-100">
+        浦上 副業収支表
+      </h1>
 
-      {/* ナビゲーション */}
-      <div className="w-full mb-6 flex justify-center px-4">
-        <div className="flex gap-2 sm:gap-4 bg-gray-100 dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700 max-w-fit">
-          <Button
-            as="a"
-            href="/"
-            color="default"
-            variant="light"
-            size="sm"
-            className="dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 min-w-0 px-3 text-xs sm:text-sm"
-          >
-            メモ
-          </Button>
-          <Button
-            as="a"
-            href="/transactions"
-            color="primary"
-            variant="solid"
-            size="sm"
-            className="dark:bg-blue-600 dark:hover:bg-blue-700 min-w-0 px-3 text-xs sm:text-sm"
-          >
-            収支表
-          </Button>
-        </div>
-      </div>
-
-      {/* 収支サマリー */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="bg-green-50">
-          <CardBody className="text-center">
-            <h3 className="text-lg font-semibold text-green-700">収入</h3>
-            <p className="text-2xl font-bold text-green-800">
-              ¥{totalIncome.toLocaleString()}
-            </p>
-          </CardBody>
-        </Card>
-        <Card className="bg-red-50">
-          <CardBody className="text-center">
-            <h3 className="text-lg font-semibold text-red-700">支出</h3>
-            <p className="text-2xl font-bold text-red-800">
-              ¥{totalExpense.toLocaleString()}
-            </p>
-          </CardBody>
-        </Card>
-        <Card className={balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}>
-          <CardBody className="text-center">
-            <h3 className="text-lg font-semibold text-blue-700">収支</h3>
-            <p
-              className={`text-2xl font-bold ${
-                balance >= 0 ? 'text-blue-800' : 'text-orange-800'
-              }`}
-            >
-              ¥{balance.toLocaleString()}
-            </p>
-          </CardBody>
-        </Card>
-      </div>
-
-      <div className="w-full mb-6 flex">
+      <div className="w-full mb-6 flex gap-2">
+        <Button
+          onPress={() => setIsTableView(!isTableView)}
+          color="primary"
+          variant="ghost"
+        >
+          {isTableView ? 'カード表示' : '履歴表示'}
+        </Button>
         <Button
           onPress={onOpenCreateModal}
           color="primary"
@@ -267,6 +225,40 @@ export default function TransactionsPage() {
           取引を追加
         </Button>
       </div>
+
+      {/* 収支サマリー - カード表示時のみ */}
+      {!isTableView && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="bg-green-50">
+            <CardBody className="text-center">
+              <h3 className="text-lg font-semibold text-green-700">収入</h3>
+              <p className="text-2xl font-bold text-green-800">
+                ¥{totalIncome.toLocaleString()}
+              </p>
+            </CardBody>
+          </Card>
+          <Card className="bg-red-50">
+            <CardBody className="text-center">
+              <h3 className="text-lg font-semibold text-red-700">支出</h3>
+              <p className="text-2xl font-bold text-red-800">
+                ¥{totalExpense.toLocaleString()}
+              </p>
+            </CardBody>
+          </Card>
+          <Card className={balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}>
+            <CardBody className="text-center">
+              <h3 className="text-lg font-semibold text-blue-700">収支</h3>
+              <p
+                className={`text-2xl font-bold ${
+                  balance >= 0 ? 'text-blue-800' : 'text-orange-800'
+                }`}
+              >
+                ¥{balance.toLocaleString()}
+              </p>
+            </CardBody>
+          </Card>
+        </div>
+      )}
 
       {/* 作成モーダル */}
       <Modal
@@ -438,71 +430,210 @@ export default function TransactionsPage() {
 
       {/* 取引リスト */}
       <div className="mt-4 pb-4">
-        {(transactions || []).map((transaction) => (
-          <Card key={transaction.key} className="mb-4">
-            <CardHeader className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold">{transaction.title}</h3>
-                <Chip
-                  color={transaction.type === 'income' ? 'success' : 'danger'}
-                  variant="flat"
-                  size="sm"
+        {isTableView ? (
+          /* 履歴表示 */
+          <div>
+            {/* PC・タブレット用テーブル表示 */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    <th className="px-2 py-1 text-left text-gray-600 dark:text-gray-300">
+                      日付
+                    </th>
+                    <th className="px-2 py-1 text-left text-gray-600 dark:text-gray-300">
+                      タイトル
+                    </th>
+                    <th className="px-2 py-1 text-left text-gray-600 dark:text-gray-300">
+                      カテゴリ
+                    </th>
+                    <th className="px-2 py-1 text-center text-gray-600 dark:text-gray-300">
+                      種類
+                    </th>
+                    <th className="px-2 py-1 text-right text-gray-600 dark:text-gray-300">
+                      金額
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {(transactions || []).map((transaction) => (
+                    <tr
+                      key={transaction.key}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <td className="px-2 py-1 text-gray-500 dark:text-gray-400">
+                        {transaction.date}
+                      </td>
+                      <td className="px-2 py-1 text-gray-900 dark:text-gray-100 font-medium">
+                        <div
+                          className="truncate max-w-xs"
+                          title={transaction.title}
+                        >
+                          {transaction.title}
+                        </div>
+                      </td>
+                      <td className="px-2 py-1 text-gray-600 dark:text-gray-300">
+                        {transaction.category
+                          ? categories.find(
+                              (c) => c.key === transaction.category,
+                            )?.label || '-'
+                          : '-'}
+                      </td>
+                      <td className="px-2 py-1 text-center">
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full ${
+                            transaction.type === 'income'
+                              ? 'bg-green-500'
+                              : 'bg-red-500'
+                          }`}
+                          title={
+                            transaction.type === 'income' ? '収入' : '支出'
+                          }
+                        ></span>
+                      </td>
+                      <td className="px-2 py-1 text-right font-bold">
+                        <span
+                          className={`${
+                            transaction.type === 'income'
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-red-600 dark:text-red-400'
+                          }`}
+                        >
+                          {transaction.type === 'income' ? '+' : '-'}¥
+                          {transaction.amount.toLocaleString()}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* スマホ用コンパクトリスト表示 */}
+            <div className="md:hidden space-y-1">
+              {(transactions || []).map((transaction) => (
+                <div
+                  key={transaction.key}
+                  className="bg-white dark:bg-gray-800 px-3 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
                 >
-                  {transaction.type === 'income' ? '収入' : '支出'}
-                </Chip>
-              </div>
-              <div className="text-right">
-                <p
-                  className={`text-lg font-bold ${
-                    transaction.type === 'income'
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                  }`}
-                >
-                  {transaction.type === 'income' ? '+' : '-'}¥
-                  {transaction.amount.toLocaleString()}
-                </p>
-                <p className="text-sm text-gray-500">{transaction.date}</p>
-              </div>
-            </CardHeader>
-            <Divider />
-            <CardBody>
-              {transaction.category && (
-                <p className="text-sm text-gray-600 mb-2">
-                  カテゴリ:{' '}
-                  {
-                    categories.find((c) => c.key === transaction.category)
-                      ?.label
-                  }
-                </p>
-              )}
-              {transaction.description && (
-                <p className="text-sm">{transaction.description}</p>
-              )}
-            </CardBody>
-            <Divider />
-            <CardFooter className="justify-end">
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  color="primary"
-                  variant="light"
-                  onPress={() => handleEditClick(transaction.id)}
-                >
-                  編集
-                </Button>
-                <Button
-                  size="sm"
-                  color="danger"
-                  variant="light"
-                  onPress={() => handleDeleteClick(transaction.id)}
-                >
-                  削除
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
-        ))}
+                  <div className="flex justify-between items-center">
+                    <div className="flex-1 min-w-0 mr-3">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                        {transaction.title}
+                      </p>
+                      <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <span>{transaction.date}</span>
+                        <span
+                          className={`inline-block w-1.5 h-1.5 rounded-full ${
+                            transaction.type === 'income'
+                              ? 'bg-green-500'
+                              : 'bg-red-500'
+                          }`}
+                        ></span>
+                        {transaction.category && (
+                          <span>
+                            {
+                              categories.find(
+                                (c) => c.key === transaction.category,
+                              )?.label
+                            }
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span
+                        className={`font-bold text-sm ${
+                          transaction.type === 'income'
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-red-600 dark:text-red-400'
+                        }`}
+                      >
+                        {transaction.type === 'income' ? '+' : '-'}¥
+                        {transaction.amount.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* カード表示 */
+          <>
+            {(transactions || []).map((transaction) => (
+              <Card key={transaction.key} className="mb-4">
+                <CardHeader className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold">{transaction.title}</h3>
+                    <Chip
+                      color={
+                        transaction.type === 'income' ? 'success' : 'danger'
+                      }
+                      variant="flat"
+                      size="sm"
+                    >
+                      {transaction.type === 'income' ? '収入' : '支出'}
+                    </Chip>
+                  </div>
+                  <div className="text-right">
+                    <p
+                      className={`text-lg font-bold ${
+                        transaction.type === 'income'
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
+                      }`}
+                    >
+                      {transaction.type === 'income' ? '+' : '-'}¥
+                      {transaction.amount.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {transaction.date}
+                    </p>
+                  </div>
+                </CardHeader>
+                <Divider />
+                <CardBody>
+                  {transaction.category && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                      カテゴリ:{' '}
+                      {
+                        categories.find((c) => c.key === transaction.category)
+                          ?.label
+                      }
+                    </p>
+                  )}
+                  {transaction.description && (
+                    <p className="text-sm text-gray-800 dark:text-gray-200">
+                      {transaction.description}
+                    </p>
+                  )}
+                </CardBody>
+                <Divider />
+                <CardFooter className="justify-end">
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      color="primary"
+                      variant="light"
+                      onPress={() => handleEditClick(transaction.id)}
+                    >
+                      編集
+                    </Button>
+                    <Button
+                      size="sm"
+                      color="danger"
+                      variant="light"
+                      onPress={() => handleDeleteClick(transaction.id)}
+                    >
+                      削除
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );
