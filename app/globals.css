@@ -32,9 +32,10 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
-  /* iPhone Chrome スクロール問題修正 */
+  /* iPhone Chrome スクロール問題修正 - プルトゥリフレッシュ有効 */
   overflow-x: hidden;
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: auto;
   -webkit-overflow-scrolling: auto;
   transform: translateZ(0);
 }
@@ -42,7 +43,8 @@ body {
 /* スクロール問題を解決 */
 html {
   overflow-x: hidden;
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: auto;
   -webkit-overflow-scrolling: auto;
 }
 
