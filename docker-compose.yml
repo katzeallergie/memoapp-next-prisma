@@ -4,11 +4,11 @@ volumes:
 services:
   db:
     image: postgres:14
-    container_name: prisma-db
+    container_name: memoapp-prisma-db
     volumes:
       - db-data:/var/lib/postgresql/prisma-db/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "password"
