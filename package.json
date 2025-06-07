@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate --schema=./prisma/local/schema.prisma && prisma migrate deploy --schema=./prisma/local/schema.prisma && next build",
-    "build:prod": "prisma generate --schema=./prisma/dev/schema.prisma && prisma migrate deploy --schema=./prisma/dev/schema.prisma &&  next build",
+    "build:prod": "prisma generate --schema=./prisma/dev/schema.prisma && next build",
     "start": "next start",
     "local": "next dev",
     "lint": "next lint",
@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@nextui-org/react": "^2.1.13",
-    "@prisma/client": "^5.5.2",
+    "@prisma/client": "^6.9.0",
     "@vercel/postgres": "^0.5.1",
     "dotenv-cli": "^7.3.0",
     "framer-motion": "^10.16.4",
@@ -31,7 +31,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.0.1",
     "postcss": "^8",
-    "prisma": "^5.5.2",
+    "prisma": "^6.9.0",
     "tailwindcss": "^3.3.0",
     "typescript": "5.3.2"
   }
