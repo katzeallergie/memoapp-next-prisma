@@ -32,23 +32,22 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
-  /* iPhone Chrome スクロール問題修正 */
+  /* iPhone Chrome スクロール問題修正 - モーダル対応版 */
   overflow-x: hidden;
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: auto;
   -webkit-overflow-scrolling: auto;
-  transform: translateZ(0);
 }
 
 /* スクロール問題を解決 */
 html {
   overflow-x: hidden;
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: auto;
   -webkit-overflow-scrolling: auto;
 }
 
-/* iPhone Chrome でのガクガク防止 */
+/* iPhone Chrome でのガクガク防止 - モーダルに影響しない設定 */
 #__next {
   overflow-x: hidden;
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
