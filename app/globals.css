@@ -32,4 +32,22 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+  /* Chrome mobile でのスクロール問題修正 */
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* スクロール問題を解決 */
+html {
+  scroll-behavior: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+/* Chrome mobile でのスクロール安定化 */
+#__next {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
