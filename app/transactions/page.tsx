@@ -326,8 +326,6 @@ export default function TransactionsPage() {
         overscrollBehaviorX: 'none',
         overscrollBehaviorY: 'auto',
         WebkitOverflowScrolling: 'auto',
-        transform: 'translateZ(0)',
-        backfaceVisibility: 'hidden',
       }}
     >
       <div className="max-w-7xl mx-auto px-4 py-4 lg:px-8">
@@ -801,10 +799,10 @@ export default function TransactionsPage() {
               <CardBody className={viewMode === 'view' ? 'px-3 py-2' : 'p-4'}>
                 {viewMode === 'view' ? (
                   // 履歴表示：コンパクト表示（タイトル2行対応）
-                  <div className="flex items-start w-full min-w-0">
-                    <div className="flex items-start gap-2 flex-1 min-w-0">
+                  <div className="flex items-center w-full min-w-0">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
                       <div
-                        className={`w-2 h-2 rounded-full flex-shrink-0 mt-1 ${
+                        className={`w-2 h-2 rounded-full flex-shrink-0 ${
                           transaction.type === 'income' ||
                           transaction.type === '収入'
                             ? 'bg-emerald-500'
@@ -980,9 +978,10 @@ export default function TransactionsPage() {
           isOpen={isOpenCreateModal}
           placement="center"
           onOpenChange={onOpenChangeCreateModal}
-          className="m-4"
           scrollBehavior="inside"
           size="lg"
+          backdrop="blur"
+          className="mx-4"
         >
           <ModalContent className="max-h-[80vh]">
             {(onClose) => (
@@ -1078,9 +1077,10 @@ export default function TransactionsPage() {
           isOpen={isOpenUpdateModal}
           placement="center"
           onOpenChange={onOpenChangeUpdateModal}
-          className="m-4"
           scrollBehavior="inside"
           size="lg"
+          backdrop="blur"
+          className="mx-4"
         >
           <ModalContent className="max-h-[80vh]">
             {(onClose) => (
@@ -1177,6 +1177,8 @@ export default function TransactionsPage() {
           placement="center"
           onOpenChange={onOpenChangeDeleteModal}
           size="sm"
+          backdrop="blur"
+          className="mx-4"
         >
           <ModalContent>
             {(onClose) => (
