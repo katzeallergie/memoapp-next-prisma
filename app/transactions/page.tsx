@@ -97,8 +97,15 @@ export default function TransactionsPage() {
   };
 
   const handleDeleteClick = async (id: number) => {
+    setDeleteTargetId(id);
+    onOpenDeleteModal();
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteTargetId === null) return;
+
     try {
-      const response = await fetch(`/api/transaction?id=${id}`, {
+      const response = await fetch(`/api/transaction?id=${deleteTargetId}`, {
         method: 'DELETE',
       });
 
@@ -110,6 +117,9 @@ export default function TransactionsPage() {
       }
     } catch (error) {
       console.error('Error deleting transaction:', error);
+    } finally {
+      setDeleteTargetId(null);
+      setIsOpenDeleteModal(false);
     }
   };
 
@@ -183,14 +193,19 @@ export default function TransactionsPage() {
 
   const [isOpenCreateModal, setIsOpenCreateModal] = useState(false);
   const [isOpenUpdateModal, setIsOpenUpdateModal] = useState(false);
+  const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
   const [isTableView, setIsTableView] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
   const onOpenCreateModal = () => setIsOpenCreateModal(true);
   const onOpenUpdateModal = () => setIsOpenUpdateModal(true);
+  const onOpenDeleteModal = () => setIsOpenDeleteModal(true);
   const onOpenChangeCreateModal = () =>
     setIsOpenCreateModal(!isOpenCreateModal);
   const onOpenChangeUpdateModal = () =>
     setIsOpenUpdateModal(!isOpenUpdateModal);
+  const onOpenChangeDeleteModal = () =>
+    setIsOpenDeleteModal(!isOpenDeleteModal);
 
   // 収支の計算
   const totalIncome = (transactions || [])
@@ -421,6 +436,42 @@ export default function TransactionsPage() {
                   }}
                 >
                   更新
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* 削除確認モーダル */}
+      <Modal
+        isOpen={isOpenDeleteModal}
+        placement="center"
+        onOpenChange={onOpenChangeDeleteModal}
+        size="sm"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="text-center">削除の確認</ModalHeader>
+              <ModalBody className="text-center">
+                <p className="text-gray-700 dark:text-gray-300">
+                  この取引を削除しますか？
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  この操作は取り消すことができません。
+                </p>
+              </ModalBody>
+              <ModalFooter className="justify-center">
+                <Button
+                  color="default"
+                  variant="light"
+                  onPress={() => setIsOpenDeleteModal(false)}
+                >
+                  キャンセル
+                </Button>
+                <Button color="danger" onPress={handleConfirmDelete}>
+                  削除する
                 </Button>
               </ModalFooter>
             </>
