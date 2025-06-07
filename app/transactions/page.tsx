@@ -2,6 +2,19 @@
 
 import { ChangeEvent, useEffect, useState } from 'react';
 import {
+  FiSettings,
+  FiTrendingUp,
+  FiTrendingDown,
+  FiBarChart,
+  FiCalendar,
+  FiDollarSign,
+  FiChevronDown,
+  FiChevronRight,
+  FiFileText,
+  FiArrowUp,
+  FiArrowDown,
+} from 'react-icons/fi';
+import {
   Button,
   Card,
   CardBody,
@@ -196,6 +209,10 @@ export default function TransactionsPage() {
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
   const [isTableView, setIsTableView] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
 
   const onOpenCreateModal = () => setIsOpenCreateModal(true);
   const onOpenUpdateModal = () => setIsOpenUpdateModal(true);
@@ -217,6 +234,35 @@ export default function TransactionsPage() {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const balance = totalIncome - totalExpense;
+
+  // フィルタリングとソート
+  const getFilteredAndSortedTransactions = () => {
+    let filtered = transactions || [];
+
+    // フィルタリング
+    if (filter === 'income') {
+      filtered = filtered.filter((t) => t.type === 'income');
+    } else if (filter === 'expense') {
+      filtered = filtered.filter((t) => t.type === 'expense');
+    }
+
+    // ソート
+    filtered.sort((a, b) => {
+      if (sortBy === 'date') {
+        const comparison =
+          new Date(a.date).getTime() - new Date(b.date).getTime();
+        return sortOrder === 'asc' ? comparison : -comparison;
+      } else {
+        // amount
+        const comparison = a.amount - b.amount;
+        return sortOrder === 'asc' ? comparison : -comparison;
+      }
+    });
+
+    return filtered;
+  };
+
+  const filteredAndSortedTransactions = getFilteredAndSortedTransactions();
 
   return (
     <div className="h-screen p-8 overflow-y-auto">
@@ -484,6 +530,156 @@ export default function TransactionsPage() {
         {isTableView ? (
           /* 履歴表示 */
           <div>
+            {/* フィルター・ソートコントロール */}
+            <div className="mb-4">
+              {/* ヘッダー部分（常に表示） */}
+              <div
+                className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+              >
+                {/* PC・タブレット表示 */}
+                <div className="hidden sm:flex items-center gap-4">
+                  <FiSettings className="text-lg text-gray-600 dark:text-gray-400" />
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="flex items-center gap-1">
+                      {filter === 'all' ? (
+                        <FiBarChart className="text-blue-500" />
+                      ) : filter === 'income' ? (
+                        <FiTrendingUp className="text-green-500" />
+                      ) : (
+                        <FiTrendingDown className="text-red-500" />
+                      )}
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {filter === 'all'
+                          ? '全て'
+                          : filter === 'income'
+                          ? '収入'
+                          : '支出'}
+                      </span>
+                    </div>
+                    <span className="text-gray-400">•</span>
+                    <div className="flex items-center gap-1">
+                      {sortBy === 'date' ? (
+                        <FiCalendar className="text-gray-500" />
+                      ) : (
+                        <FiDollarSign className="text-gray-500" />
+                      )}
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {sortBy === 'date' ? '日付' : '金額'}
+                      </span>
+                    </div>
+                    <span className="text-gray-400">•</span>
+                    <div className="flex items-center gap-1">
+                      {sortOrder === 'desc' ? (
+                        <FiArrowDown className="text-gray-500" />
+                      ) : (
+                        <FiArrowUp className="text-gray-500" />
+                      )}
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {sortOrder === 'desc' ? '新→古' : '古→新'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* スマホ表示 */}
+                <div className="sm:hidden flex items-center gap-3">
+                  <FiSettings className="text-lg text-gray-600 dark:text-gray-400" />
+                  <div className="flex items-center gap-2">
+                    {filter === 'all' ? (
+                      <FiBarChart className="text-blue-500" />
+                    ) : filter === 'income' ? (
+                      <FiTrendingUp className="text-green-500" />
+                    ) : (
+                      <FiTrendingDown className="text-red-500" />
+                    )}
+                    {sortBy === 'date' ? (
+                      <FiCalendar className="text-gray-500" />
+                    ) : (
+                      <FiDollarSign className="text-gray-500" />
+                    )}
+                    {sortOrder === 'desc' ? (
+                      <FiArrowDown className="text-gray-500" />
+                    ) : (
+                      <FiArrowUp className="text-gray-500" />
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+                    <FiFileText className="text-sm" />
+                    <span>{filteredAndSortedTransactions.length}</span>
+                  </div>
+                  {isFilterExpanded ? (
+                    <FiChevronDown className="text-gray-500 dark:text-gray-400" />
+                  ) : (
+                    <FiChevronRight className="text-gray-500 dark:text-gray-400" />
+                  )}
+                </div>
+              </div>
+
+              {/* 展開部分（条件付き表示） */}
+              {isFilterExpanded && (
+                <div className="mt-2 flex flex-col sm:flex-row gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <Select
+                    label="表示"
+                    selectedKeys={[filter]}
+                    onSelectionChange={(keys) => {
+                      const newValue = Array.from(keys)[0] as
+                        | 'all'
+                        | 'income'
+                        | 'expense';
+                      if (newValue && newValue !== filter) {
+                        setFilter(newValue);
+                      }
+                    }}
+                    className="min-w-0 sm:w-32"
+                    size="sm"
+                  >
+                    <SelectItem key="all" value="all">
+                      全て
+                    </SelectItem>
+                    <SelectItem key="income" value="income">
+                      収入のみ
+                    </SelectItem>
+                    <SelectItem key="expense" value="expense">
+                      支出のみ
+                    </SelectItem>
+                  </Select>
+
+                  <Select
+                    label="並び順"
+                    selectedKeys={[sortBy]}
+                    onSelectionChange={(keys) => {
+                      const newValue = Array.from(keys)[0] as 'date' | 'amount';
+                      if (newValue && newValue !== sortBy) {
+                        setSortBy(newValue);
+                      }
+                    }}
+                    className="min-w-0 sm:w-32"
+                    size="sm"
+                  >
+                    <SelectItem key="date" value="date">
+                      日付順
+                    </SelectItem>
+                    <SelectItem key="amount" value="amount">
+                      金額順
+                    </SelectItem>
+                  </Select>
+
+                  <Button
+                    size="sm"
+                    variant="bordered"
+                    onPress={() =>
+                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                    }
+                    className="min-w-0 sm:w-24"
+                  >
+                    {sortOrder === 'desc' ? '↓ 降順' : '↑ 昇順'}
+                  </Button>
+                </div>
+              )}
+            </div>
             {/* PC・タブレット用テーブル表示 */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-xs">
@@ -507,7 +703,7 @@ export default function TransactionsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {(transactions || []).map((transaction) => (
+                  {filteredAndSortedTransactions.map((transaction) => (
                     <tr
                       key={transaction.key}
                       className="hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -531,16 +727,17 @@ export default function TransactionsPage() {
                           : '-'}
                       </td>
                       <td className="px-2 py-1 text-center">
-                        <span
-                          className={`inline-block w-2 h-2 rounded-full ${
-                            transaction.type === 'income'
-                              ? 'bg-green-500'
-                              : 'bg-red-500'
-                          }`}
-                          title={
-                            transaction.type === 'income' ? '収入' : '支出'
-                          }
-                        ></span>
+                        {transaction.type === 'income' ? (
+                          <FiTrendingUp
+                            className="text-green-500 mx-auto"
+                            title="収入"
+                          />
+                        ) : (
+                          <FiTrendingDown
+                            className="text-red-500 mx-auto"
+                            title="支出"
+                          />
+                        )}
                       </td>
                       <td className="px-2 py-1 text-right font-bold">
                         <span
@@ -562,7 +759,7 @@ export default function TransactionsPage() {
 
             {/* スマホ用コンパクトリスト表示 */}
             <div className="md:hidden space-y-1">
-              {(transactions || []).map((transaction) => (
+              {filteredAndSortedTransactions.map((transaction) => (
                 <div
                   key={transaction.key}
                   className="bg-white dark:bg-gray-800 px-3 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
@@ -574,13 +771,11 @@ export default function TransactionsPage() {
                       </p>
                       <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 mt-1">
                         <span>{transaction.date}</span>
-                        <span
-                          className={`inline-block w-1.5 h-1.5 rounded-full ${
-                            transaction.type === 'income'
-                              ? 'bg-green-500'
-                              : 'bg-red-500'
-                          }`}
-                        ></span>
+                        {transaction.type === 'income' ? (
+                          <FiTrendingUp className="text-green-500 w-3 h-3" />
+                        ) : (
+                          <FiTrendingDown className="text-red-500 w-3 h-3" />
+                        )}
                         {transaction.category && (
                           <span>
                             {
