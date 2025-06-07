@@ -266,9 +266,16 @@ export default function TransactionsPage() {
 
   return (
     <div className="h-screen p-8 overflow-y-auto">
-      <h1 className="text-xl text-center mb-6 text-gray-900 dark:text-gray-100">
-        浦上 副業収支表
-      </h1>
+      <div className="text-center mb-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-md">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-white/20 rounded-full backdrop-blur-sm">
+              <FiDollarSign className="text-white text-sm" />
+            </div>
+            <h1 className="text-lg font-bold text-white">浦上 副業収支表</h1>
+          </div>
+        </div>
+      </div>
 
       <div className="w-full mb-6 flex gap-2">
         <Button
