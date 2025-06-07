@@ -345,123 +345,64 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        {/* サマリーカード - 履歴表示モードでは非表示 */}
-        {viewMode === 'edit' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {/* 収入カード */}
-            <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-0 shadow-lg backdrop-blur-xl">
-              <CardBody className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-1">
-                      総収入
-                    </p>
-                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
-                      ¥{formatAmount(totalIncome)}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg">
-                    <FiTrendingUp className="text-white text-lg" />
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-
-            {/* 支出カード */}
-            <Card className="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 border-0 shadow-lg backdrop-blur-xl">
-              <CardBody className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-rose-600 dark:text-rose-400 mb-1">
-                      総支出
-                    </p>
-                    <p className="text-2xl font-bold text-rose-700 dark:text-rose-300">
-                      ¥{formatAmount(totalExpense)}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl shadow-lg">
-                    <FiTrendingDown className="text-white text-lg" />
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-
-            {/* 純収益カード */}
-            <Card
-              className={`bg-gradient-to-br ${
-                netAmount >= 0
-                  ? 'from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20'
-                  : 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20'
-              } border-0 shadow-lg backdrop-blur-xl`}
-            >
-              <CardBody className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p
-                      className={`text-xs font-medium mb-1 ${
-                        netAmount >= 0
-                          ? 'text-blue-600 dark:text-blue-400'
-                          : 'text-amber-600 dark:text-amber-400'
-                      }`}
-                    >
-                      純収益
-                    </p>
-                    <p
-                      className={`text-2xl font-bold ${
-                        netAmount >= 0
-                          ? 'text-blue-700 dark:text-blue-300'
-                          : 'text-amber-700 dark:text-amber-300'
-                      }`}
-                    >
-                      ¥{formatAmount(netAmount)}
-                    </p>
-                  </div>
-                  <div
-                    className={`p-3 rounded-xl shadow-lg ${
-                      netAmount >= 0
-                        ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                        : 'bg-gradient-to-br from-amber-500 to-orange-600'
-                    }`}
-                  >
-                    <FiBarChart className="text-white text-lg" />
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          </div>
-        )}
-
         {/* コントロールパネル */}
         <Card className="mb-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-0 shadow-lg">
-          <CardHeader
-            className="cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors duration-200 p-3"
-            onClick={() => setIsControlsExpanded(!isControlsExpanded)}
-          >
-            <div className="flex items-center justify-between w-full">
+          <CardHeader className="p-3">
+            <div className="flex flex-col gap-3 w-full">
+              {/* 表示切り替えボタン */}
               <div className="flex items-center gap-2">
-                <div className="p-1 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg">
-                  <FiSettings className="text-white text-xs" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
-                    フィルター・ソート設定
-                  </h3>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Chip
+                <Button
+                  color={viewMode === 'edit' ? 'primary' : 'default'}
+                  variant={viewMode === 'edit' ? 'solid' : 'bordered'}
                   size="sm"
-                  variant="flat"
-                  color="primary"
-                  className="text-xs font-medium"
+                  onPress={() => setViewMode('edit')}
+                  className="transition-all duration-200 flex-1"
+                  startContent={<FiList className="text-base" />}
                 >
-                  {filteredTransactions.length}件
-                </Chip>
-                {isControlsExpanded ? (
-                  <FiChevronDown className="text-slate-400 text-base" />
-                ) : (
-                  <FiChevronRight className="text-slate-400 text-base" />
-                )}
+                  編集可能
+                </Button>
+                <Button
+                  color={viewMode === 'view' ? 'primary' : 'default'}
+                  variant={viewMode === 'view' ? 'solid' : 'bordered'}
+                  size="sm"
+                  onPress={() => setViewMode('view')}
+                  className="transition-all duration-200 flex-1"
+                  startContent={<FiEye className="text-base" />}
+                >
+                  履歴表示
+                </Button>
+              </div>
+
+              {/* フィルター・ソート設定ヘッダー */}
+              <div
+                className="flex items-center justify-between cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors duration-200 rounded-lg p-2 -m-2"
+                onClick={() => setIsControlsExpanded(!isControlsExpanded)}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="p-1 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg">
+                    <FiSettings className="text-white text-xs" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+                      フィルター・ソート設定
+                    </h3>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    className="text-xs font-medium"
+                  >
+                    {filteredTransactions.length}件
+                  </Chip>
+                  {isControlsExpanded ? (
+                    <FiChevronDown className="text-slate-400 text-base" />
+                  ) : (
+                    <FiChevronRight className="text-slate-400 text-base" />
+                  )}
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -557,45 +498,106 @@ export default function TransactionsPage() {
           )}
         </Card>
 
-        {/* 新規作成ボタンと表示切り替え */}
-        <div className="mb-6 flex flex-col sm:flex-row gap-4">
-          {/* 表示切り替えボタン */}
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button
-              color={viewMode === 'edit' ? 'primary' : 'default'}
-              variant={viewMode === 'edit' ? 'solid' : 'bordered'}
-              size="lg"
-              onPress={() => setViewMode('edit')}
-              className="transition-all duration-200 flex-1 sm:flex-none px-6"
-              startContent={<FiList className="text-lg" />}
-            >
-              編集可能
-            </Button>
-            <Button
-              color={viewMode === 'view' ? 'primary' : 'default'}
-              variant={viewMode === 'view' ? 'solid' : 'bordered'}
-              size="lg"
-              onPress={() => setViewMode('view')}
-              className="transition-all duration-200 flex-1 sm:flex-none px-6"
-              startContent={<FiEye className="text-lg" />}
-            >
-              履歴表示
-            </Button>
-          </div>
+        {/* サマリーカード - 編集モードのみ */}
+        {viewMode === 'edit' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* 収入カード */}
+            <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-0 shadow-lg backdrop-blur-xl">
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-1">
+                      総収入
+                    </p>
+                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                      ¥{formatAmount(totalIncome)}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg">
+                    <FiTrendingUp className="text-white text-lg" />
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
 
-          {/* 新規作成ボタン - 編集モードのみ */}
-          {viewMode === 'edit' && (
+            {/* 支出カード */}
+            <Card className="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 border-0 shadow-lg backdrop-blur-xl">
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-rose-600 dark:text-rose-400 mb-1">
+                      総支出
+                    </p>
+                    <p className="text-2xl font-bold text-rose-700 dark:text-rose-300">
+                      ¥{formatAmount(totalExpense)}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl shadow-lg">
+                    <FiTrendingDown className="text-white text-lg" />
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+
+            {/* 純収益カード */}
+            <Card
+              className={`bg-gradient-to-br ${
+                netAmount >= 0
+                  ? 'from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20'
+                  : 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20'
+              } border-0 shadow-lg backdrop-blur-xl`}
+            >
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p
+                      className={`text-xs font-medium mb-1 ${
+                        netAmount >= 0
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : 'text-amber-600 dark:text-amber-400'
+                      }`}
+                    >
+                      純収益
+                    </p>
+                    <p
+                      className={`text-2xl font-bold ${
+                        netAmount >= 0
+                          ? 'text-blue-700 dark:text-blue-300'
+                          : 'text-amber-700 dark:text-amber-300'
+                      }`}
+                    >
+                      ¥{formatAmount(netAmount)}
+                    </p>
+                  </div>
+                  <div
+                    className={`p-3 rounded-xl shadow-lg ${
+                      netAmount >= 0
+                        ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                        : 'bg-gradient-to-br from-amber-500 to-orange-600'
+                    }`}
+                  >
+                    <FiBarChart className="text-white text-lg" />
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+        )}
+
+        {/* 新規作成ボタン - 編集モードのみ */}
+        {viewMode === 'edit' && (
+          <div className="mb-6 flex justify-center">
             <Button
               onPress={onOpenCreateModal}
               color="primary"
               size="lg"
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 px-8 w-full sm:w-auto"
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 px-8"
               startContent={<FiPlus className="text-lg" />}
             >
               収支を追加
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* PC用テーブル表示 */}
         <div className="hidden md:block">
@@ -768,32 +770,33 @@ export default function TransactionsPage() {
             >
               <CardBody className={viewMode === 'view' ? 'px-3 py-2' : 'p-4'}>
                 {viewMode === 'view' ? (
-                  // 履歴表示：1行コンパクト表示
-                  <div className="flex items-center w-full min-w-0">
-                    <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
+                  // 履歴表示：コンパクト表示（タイトル2行対応）
+                  <div className="flex items-start w-full min-w-0">
+                    <div className="flex items-start gap-2 flex-1 min-w-0">
                       <div
-                        className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                        className={`w-2 h-2 rounded-full flex-shrink-0 mt-1 ${
                           transaction.type === 'income' ||
                           transaction.type === '収入'
                             ? 'bg-emerald-500'
                             : 'bg-rose-500'
                         }`}
                       />
-                      <span
-                        className="text-sm text-slate-800 dark:text-white truncate max-w-[140px]"
+                      <div
+                        className="text-sm text-slate-800 dark:text-white line-clamp-2 leading-tight"
                         title={transaction.title}
+                        style={{ maxWidth: '140px' }}
                       >
                         {transaction.title}
-                      </span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 ml-auto">
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0 min-w-0">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">
                         {formatDate(transaction.date).replace(
                           /(\d{4})\/(\d{2})\/(\d{2})/,
                           '$2/$3',
                         )}
-                      </span>
-                    </div>
-                    <div className="ml-3 flex-shrink-0">
-                      <span
+                      </div>
+                      <div
                         className={`font-bold text-sm whitespace-nowrap ${
                           transaction.type === 'income' ||
                           transaction.type === '収入'
@@ -806,7 +809,7 @@ export default function TransactionsPage() {
                           ? '+'
                           : '-'}
                         ¥{formatAmount(transaction.amount)}
-                      </span>
+                      </div>
                     </div>
                   </div>
                 ) : (
