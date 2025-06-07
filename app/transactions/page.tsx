@@ -222,23 +222,21 @@ export default function TransactionsPage() {
   const [isControlsExpanded, setIsControlsExpanded] = useState(false);
   const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit');
 
-  // スクロール位置を保持
+  // スクロール位置を保持（ガクガク防止）
   useEffect(() => {
+    // iPhone Chrome でのスクロール問題を軽減
+    const preventScrollJump = () => {
+      document.body.style.height = 'auto';
+      document.documentElement.style.height = 'auto';
+    };
+
+    preventScrollJump();
+
     const saveScrollPosition = () => {
       sessionStorage.setItem('transactions-scroll', window.scrollY.toString());
     };
 
-    const restoreScrollPosition = () => {
-      const savedPosition = sessionStorage.getItem('transactions-scroll');
-      if (savedPosition) {
-        setTimeout(() => {
-          window.scrollTo(0, parseInt(savedPosition));
-        }, 100);
-      }
-    };
-
     window.addEventListener('beforeunload', saveScrollPosition);
-    restoreScrollPosition();
 
     return () => {
       window.removeEventListener('beforeunload', saveScrollPosition);
@@ -325,8 +323,10 @@ export default function TransactionsPage() {
     <div
       className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"
       style={{
-        WebkitOverflowScrolling: 'touch',
-        overscrollBehaviorY: 'contain',
+        overscrollBehavior: 'none',
+        WebkitOverflowScrolling: 'auto',
+        transform: 'translateZ(0)',
+        backfaceVisibility: 'hidden',
       }}
     >
       <div className="max-w-7xl mx-auto px-4 py-4 lg:px-8">

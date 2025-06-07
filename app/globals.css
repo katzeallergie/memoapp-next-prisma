@@ -32,22 +32,23 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
-  /* Chrome mobile でのスクロール問題修正 */
-  position: relative;
-  min-height: 100vh;
+  /* iPhone Chrome スクロール問題修正 */
   overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: auto;
+  transform: translateZ(0);
 }
 
 /* スクロール問題を解決 */
 html {
-  scroll-behavior: auto;
   overflow-x: hidden;
-  height: 100%;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: auto;
 }
 
-/* Chrome mobile でのスクロール安定化 */
+/* iPhone Chrome でのガクガク防止 */
 #__next {
-  position: relative;
-  min-height: 100vh;
   overflow-x: hidden;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
