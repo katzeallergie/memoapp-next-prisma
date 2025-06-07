@@ -13,6 +13,10 @@ import {
   FiFileText,
   FiArrowUp,
   FiArrowDown,
+  FiPlus,
+  FiFilter,
+  FiList,
+  FiEye,
 } from 'react-icons/fi';
 import {
   Button,
@@ -202,17 +206,21 @@ export default function TransactionsPage() {
     setCategory('');
     setDescription('');
     setDate(new Date().toISOString().split('T')[0]);
+    setCurrentId(0);
   };
 
+  // Modal states
   const [isOpenCreateModal, setIsOpenCreateModal] = useState(false);
   const [isOpenUpdateModal, setIsOpenUpdateModal] = useState(false);
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
-  const [isTableView, setIsTableView] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+
+  // Filter and sort states
+  const [filterType, setFilterType] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [isControlsExpanded, setIsControlsExpanded] = useState(false);
+  const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit');
 
   const onOpenCreateModal = () => setIsOpenCreateModal(true);
   const onOpenUpdateModal = () => setIsOpenUpdateModal(true);
@@ -224,745 +232,947 @@ export default function TransactionsPage() {
   const onOpenChangeDeleteModal = () =>
     setIsOpenDeleteModal(!isOpenDeleteModal);
 
-  // 収支の計算
-  const totalIncome = (transactions || [])
-    .filter((t) => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
+  const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setTitle(event.target.value);
+  };
+  const handleAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setAmount(event.target.value);
+  };
+  const handleDescriptionChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setDescription(event.target.value);
+  };
+  const handleDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setDate(event.target.value);
+  };
 
-  const totalExpense = (transactions || [])
-    .filter((t) => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const balance = totalIncome - totalExpense;
-
-  // フィルタリングとソート
   const getFilteredAndSortedTransactions = () => {
-    let filtered = transactions || [];
+    let filtered = transactions;
 
-    // フィルタリング
-    if (filter === 'income') {
-      filtered = filtered.filter((t) => t.type === 'income');
-    } else if (filter === 'expense') {
-      filtered = filtered.filter((t) => t.type === 'expense');
+    // Filter
+    if (filterType === 'income') {
+      filtered = filtered.filter(
+        (t) => t.type === 'income' || t.type === '収入',
+      );
+    } else if (filterType === 'expense') {
+      filtered = filtered.filter(
+        (t) => t.type === 'expense' || t.type === '支出',
+      );
     }
 
-    // ソート
+    // Sort
     filtered.sort((a, b) => {
+      let comparison = 0;
       if (sortBy === 'date') {
-        const comparison =
-          new Date(a.date).getTime() - new Date(b.date).getTime();
-        return sortOrder === 'asc' ? comparison : -comparison;
-      } else {
-        // amount
-        const comparison = a.amount - b.amount;
-        return sortOrder === 'asc' ? comparison : -comparison;
+        comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+      } else if (sortBy === 'amount') {
+        comparison = a.amount - b.amount;
       }
+      return sortOrder === 'asc' ? comparison : -comparison;
     });
 
     return filtered;
   };
 
-  const filteredAndSortedTransactions = getFilteredAndSortedTransactions();
+  const totalIncome = transactions
+    .filter((t) => t.type === 'income' || t.type === '収入')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const totalExpense = transactions
+    .filter((t) => t.type === 'expense' || t.type === '支出')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const netAmount = totalIncome - totalExpense;
+
+  const filteredTransactions = getFilteredAndSortedTransactions();
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
+
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('ja-JP').format(amount);
+  };
 
   return (
-    <div className="h-screen p-8 overflow-y-auto">
-      <div className="text-center mb-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-md">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-white/20 rounded-full backdrop-blur-sm">
-              <FiDollarSign className="text-white text-sm" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="max-w-7xl mx-auto px-4 py-4 lg:px-8">
+        {/* ナビゲーション */}
+        {/* <div className="mb-8 flex justify-center">
+          <div className="inline-flex items-center gap-1 p-1 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 dark:border-slate-700/50">
+            <Button
+              as="a"
+              href="/"
+              color="default"
+              variant="light"
+              size="sm"
+              className="px-6 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-700/50 rounded-xl transition-all duration-200"
+              startContent={<FiFileText className="text-base" />}
+            >
+              メモ
+            </Button>
+            <Button
+              as="a"
+              href="/transactions"
+              color="primary"
+              variant="solid"
+              size="sm"
+              className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl shadow-md transition-all duration-200"
+              startContent={<FiBarChart className="text-base" />}
+            >
+              収支表
+            </Button>
+          </div>
+        </div> */}
+
+        {/* タイトル */}
+        <div className="text-center mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 dark:border-slate-700/50">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-emerald-400 to-cyan-600 rounded-xl shadow-lg">
+                <FiDollarSign className="text-white text-lg" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                  浦上 副業収支表
+                </h1>
+              </div>
             </div>
-            <h1 className="text-lg font-bold text-white">浦上 副業収支表</h1>
           </div>
         </div>
-      </div>
 
-      <div className="w-full mb-6 flex gap-2">
-        <Button
-          onPress={() => setIsTableView(!isTableView)}
-          color="primary"
-          variant="ghost"
-        >
-          {isTableView ? 'カード表示' : '履歴表示'}
-        </Button>
-        <Button
-          onPress={onOpenCreateModal}
-          color="primary"
-          className="ml-auto mr-0"
-        >
-          取引を追加
-        </Button>
-      </div>
-
-      {/* 収支サマリー - カード表示時のみ */}
-      {!isTableView && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {/* 収入カード */}
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
-            <CardBody className="text-center p-4">
-              <div className="flex justify-center items-center gap-2 mb-2">
-                <div className="p-1.5 bg-green-500 rounded-full">
-                  <FiTrendingUp className="text-white text-sm" />
+        {/* サマリーカード - 履歴表示モードでは非表示 */}
+        {viewMode === 'edit' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* 収入カード */}
+            <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-0 shadow-lg backdrop-blur-xl">
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-1">
+                      総収入
+                    </p>
+                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                      ¥{formatAmount(totalIncome)}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg">
+                    <FiTrendingUp className="text-white text-lg" />
+                  </div>
                 </div>
-                <h3 className="text-sm font-semibold text-green-700 dark:text-green-300">
-                  収入
-                </h3>
-              </div>
-              <p className="text-xl font-bold text-green-800 dark:text-green-200">
-                ¥{totalIncome.toLocaleString()}
-              </p>
-            </CardBody>
-          </Card>
+              </CardBody>
+            </Card>
 
-          {/* 支出カード */}
-          <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-700">
-            <CardBody className="text-center p-4">
-              <div className="flex justify-center items-center gap-2 mb-2">
-                <div className="p-1.5 bg-red-500 rounded-full">
-                  <FiTrendingDown className="text-white text-sm" />
+            {/* 支出カード */}
+            <Card className="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 border-0 shadow-lg backdrop-blur-xl">
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-rose-600 dark:text-rose-400 mb-1">
+                      総支出
+                    </p>
+                    <p className="text-2xl font-bold text-rose-700 dark:text-rose-300">
+                      ¥{formatAmount(totalExpense)}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl shadow-lg">
+                    <FiTrendingDown className="text-white text-lg" />
+                  </div>
                 </div>
-                <h3 className="text-sm font-semibold text-red-700 dark:text-red-300">
-                  支出
-                </h3>
-              </div>
-              <p className="text-xl font-bold text-red-800 dark:text-red-200">
-                ¥{totalExpense.toLocaleString()}
-              </p>
-            </CardBody>
-          </Card>
+              </CardBody>
+            </Card>
 
-          {/* 収支カード */}
-          <Card
-            className={`bg-gradient-to-br ${
-              balance >= 0
-                ? 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700'
-                : 'from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-700'
-            }`}
+            {/* 純収益カード */}
+            <Card
+              className={`bg-gradient-to-br ${
+                netAmount >= 0
+                  ? 'from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20'
+                  : 'from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20'
+              } border-0 shadow-lg backdrop-blur-xl`}
+            >
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p
+                      className={`text-xs font-medium mb-1 ${
+                        netAmount >= 0
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : 'text-amber-600 dark:text-amber-400'
+                      }`}
+                    >
+                      純収益
+                    </p>
+                    <p
+                      className={`text-2xl font-bold ${
+                        netAmount >= 0
+                          ? 'text-blue-700 dark:text-blue-300'
+                          : 'text-amber-700 dark:text-amber-300'
+                      }`}
+                    >
+                      ¥{formatAmount(netAmount)}
+                    </p>
+                  </div>
+                  <div
+                    className={`p-3 rounded-xl shadow-lg ${
+                      netAmount >= 0
+                        ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                        : 'bg-gradient-to-br from-amber-500 to-orange-600'
+                    }`}
+                  >
+                    <FiBarChart className="text-white text-lg" />
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+        )}
+
+        {/* コントロールパネル */}
+        <Card className="mb-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-0 shadow-lg">
+          <CardHeader
+            className="cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors duration-200 p-3"
+            onClick={() => setIsControlsExpanded(!isControlsExpanded)}
           >
-            <CardBody className="text-center p-4">
-              <div className="flex justify-center items-center gap-2 mb-2">
-                <div
-                  className={`p-1.5 rounded-full ${
-                    balance >= 0 ? 'bg-blue-500' : 'bg-orange-500'
-                  }`}
-                >
-                  {balance >= 0 ? (
-                    <FiBarChart className="text-white text-sm" />
-                  ) : (
-                    <FiTrendingDown className="text-white text-sm" />
-                  )}
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <div className="p-1 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg">
+                  <FiSettings className="text-white text-xs" />
                 </div>
-                <h3
-                  className={`text-sm font-semibold ${
-                    balance >= 0
-                      ? 'text-blue-700 dark:text-blue-300'
-                      : 'text-orange-700 dark:text-orange-300'
-                  }`}
-                >
-                  収支
-                </h3>
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+                    フィルター・ソート設定
+                  </h3>
+                </div>
               </div>
-              <p
-                className={`text-xl font-bold ${
-                  balance >= 0
-                    ? 'text-blue-800 dark:text-blue-200'
-                    : 'text-orange-800 dark:text-orange-200'
-                }`}
+              <div className="flex items-center gap-2">
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  color="primary"
+                  className="text-xs font-medium"
+                >
+                  {filteredTransactions.length}件
+                </Chip>
+                {isControlsExpanded ? (
+                  <FiChevronDown className="text-slate-400 text-base" />
+                ) : (
+                  <FiChevronRight className="text-slate-400 text-base" />
+                )}
+              </div>
+            </div>
+          </CardHeader>
+
+          {isControlsExpanded && (
+            <CardBody className="p-3 pt-0">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <Select
+                  label="表示フィルター"
+                  placeholder="タイプを選択"
+                  selectedKeys={[filterType]}
+                  onSelectionChange={(keys) => {
+                    const selected = Array.from(keys)[0] as string;
+                    if (selected) setFilterType(selected);
+                  }}
+                  size="sm"
+                  variant="bordered"
+                  startContent={<FiFilter className="text-xs" />}
+                  className="max-w-full"
+                  classNames={{
+                    trigger: 'h-10',
+                    label: 'text-xs',
+                  }}
+                >
+                  <SelectItem key="all" value="all">
+                    全て
+                  </SelectItem>
+                  <SelectItem key="income" value="income">
+                    収入のみ
+                  </SelectItem>
+                  <SelectItem key="expense" value="expense">
+                    支出のみ
+                  </SelectItem>
+                </Select>
+
+                <Select
+                  label="ソート項目"
+                  placeholder="項目を選択"
+                  selectedKeys={[sortBy]}
+                  onSelectionChange={(keys) => {
+                    const selected = Array.from(keys)[0] as string;
+                    if (selected) setSortBy(selected);
+                  }}
+                  size="sm"
+                  variant="bordered"
+                  startContent={<FiBarChart className="text-sm" />}
+                  className="max-w-full"
+                  classNames={{
+                    trigger: 'h-10',
+                    label: 'text-xs',
+                  }}
+                >
+                  <SelectItem key="date" value="date">
+                    日付順
+                  </SelectItem>
+                  <SelectItem key="amount" value="amount">
+                    金額順
+                  </SelectItem>
+                </Select>
+
+                <Select
+                  label="ソート順"
+                  placeholder="順序を選択"
+                  selectedKeys={[sortOrder]}
+                  onSelectionChange={(keys) => {
+                    const selected = Array.from(keys)[0] as string;
+                    if (selected) setSortOrder(selected);
+                  }}
+                  size="sm"
+                  variant="bordered"
+                  startContent={
+                    sortOrder === 'desc' ? (
+                      <FiArrowDown className="text-sm" />
+                    ) : (
+                      <FiArrowUp className="text-sm" />
+                    )
+                  }
+                  className="max-w-full"
+                  classNames={{
+                    trigger: 'h-10',
+                    label: 'text-xs',
+                  }}
+                >
+                  <SelectItem key="desc" value="desc">
+                    降順
+                  </SelectItem>
+                  <SelectItem key="asc" value="asc">
+                    昇順
+                  </SelectItem>
+                </Select>
+              </div>
+            </CardBody>
+          )}
+        </Card>
+
+        {/* 新規作成ボタンと表示切り替え */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-4">
+          {/* 表示切り替えボタン */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              color={viewMode === 'edit' ? 'primary' : 'default'}
+              variant={viewMode === 'edit' ? 'solid' : 'bordered'}
+              size="lg"
+              onPress={() => setViewMode('edit')}
+              className="transition-all duration-200 flex-1 sm:flex-none px-6"
+              startContent={<FiList className="text-lg" />}
+            >
+              編集可能
+            </Button>
+            <Button
+              color={viewMode === 'view' ? 'primary' : 'default'}
+              variant={viewMode === 'view' ? 'solid' : 'bordered'}
+              size="lg"
+              onPress={() => setViewMode('view')}
+              className="transition-all duration-200 flex-1 sm:flex-none px-6"
+              startContent={<FiEye className="text-lg" />}
+            >
+              履歴表示
+            </Button>
+          </div>
+
+          {/* 新規作成ボタン - 編集モードのみ */}
+          {viewMode === 'edit' && (
+            <Button
+              onPress={onOpenCreateModal}
+              color="primary"
+              size="lg"
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 px-8 w-full sm:w-auto"
+              startContent={<FiPlus className="text-lg" />}
+            >
+              収支を追加
+            </Button>
+          )}
+        </div>
+
+        {/* PC用テーブル表示 */}
+        <div className="hidden md:block">
+          <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-0 shadow-xl">
+            <CardBody className="p-0">
+              <Table
+                aria-label="収支一覧テーブル"
+                className="min-h-[400px]"
+                classNames={{
+                  wrapper: 'shadow-none bg-transparent',
+                  th: 'bg-slate-50/80 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300 font-semibold',
+                  td: `${
+                    viewMode === 'view' ? 'py-1' : 'py-4'
+                  } border-b border-slate-100 dark:border-slate-700/50`,
+                }}
               >
-                {balance >= 0 ? '+' : ''}¥{balance.toLocaleString()}
-              </p>
+                <TableHeader>
+                  <TableColumn>日付</TableColumn>
+                  <TableColumn>タイトル</TableColumn>
+                  <TableColumn className={viewMode === 'view' ? 'hidden' : ''}>
+                    カテゴリ
+                  </TableColumn>
+                  <TableColumn className={viewMode === 'view' ? 'hidden' : ''}>
+                    タイプ
+                  </TableColumn>
+                  <TableColumn>金額</TableColumn>
+                  <TableColumn className={viewMode === 'view' ? 'hidden' : ''}>
+                    操作
+                  </TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {filteredTransactions.map((transaction) => (
+                    <TableRow key={transaction.key}>
+                      <TableCell>
+                        <span
+                          className={`${
+                            viewMode === 'view'
+                              ? 'text-xs text-slate-500 dark:text-slate-400'
+                              : 'font-medium text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          {viewMode === 'view'
+                            ? formatDate(transaction.date).replace(/\//g, '/')
+                            : formatDate(transaction.date)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 min-w-0">
+                          {viewMode === 'view' && (
+                            <div
+                              className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                transaction.type === 'income' ||
+                                transaction.type === '収入'
+                                  ? 'bg-emerald-500'
+                                  : 'bg-rose-500'
+                              }`}
+                            />
+                          )}
+                          <span
+                            className={`${
+                              viewMode === 'view'
+                                ? 'text-sm max-w-xs'
+                                : 'font-medium max-w-sm'
+                            } text-slate-800 dark:text-white truncate`}
+                            title={transaction.title}
+                          >
+                            {transaction.title}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell
+                        className={viewMode === 'view' ? 'hidden' : ''}
+                      >
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color="default"
+                          className="text-xs"
+                        >
+                          {transaction.category || 'なし'}
+                        </Chip>
+                      </TableCell>
+                      <TableCell
+                        className={viewMode === 'view' ? 'hidden' : ''}
+                      >
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color={
+                            transaction.type === 'income' ||
+                            transaction.type === '収入'
+                              ? 'success'
+                              : 'danger'
+                          }
+                          startContent={
+                            transaction.type === 'income' ||
+                            transaction.type === '収入' ? (
+                              <FiTrendingUp className="text-xs" />
+                            ) : (
+                              <FiTrendingDown className="text-xs" />
+                            )
+                          }
+                        >
+                          {transaction.type === 'income' ||
+                          transaction.type === '収入'
+                            ? '収入'
+                            : '支出'}
+                        </Chip>
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`font-bold ${
+                            viewMode === 'view' ? 'text-sm' : 'text-lg'
+                          } ${
+                            transaction.type === 'income' ||
+                            transaction.type === '収入'
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-rose-600 dark:text-rose-400'
+                          }`}
+                        >
+                          {transaction.type === 'income' ||
+                          transaction.type === '収入'
+                            ? '+'
+                            : '-'}
+                          ¥{formatAmount(transaction.amount)}
+                        </span>
+                      </TableCell>
+                      <TableCell
+                        className={viewMode === 'view' ? 'hidden' : ''}
+                      >
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            color="primary"
+                            variant="flat"
+                            onPress={() => handleEditClick(transaction.id)}
+                            className="hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                          >
+                            編集
+                          </Button>
+                          <Button
+                            size="sm"
+                            color="danger"
+                            variant="flat"
+                            onClick={() => handleDeleteClick(transaction.id)}
+                            className="hover:bg-red-100 dark:hover:bg-red-900/30"
+                          >
+                            削除
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardBody>
           </Card>
         </div>
-      )}
 
-      {/* 作成モーダル */}
-      <Modal
-        isOpen={isOpenCreateModal}
-        placement="center"
-        onOpenChange={onOpenChangeCreateModal}
-        className="m-4"
-        scrollBehavior="inside"
-        size="lg"
-      >
-        <ModalContent className="max-h-[80vh]">
-          {(onClose) => (
-            <>
-              <ModalHeader>取引を追加</ModalHeader>
-              <ModalBody className="overflow-y-auto">
-                <Input
-                  label="タイトル"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  classNames={{
-                    input: 'text-base',
-                  }}
-                />
-                <Input
-                  label="金額"
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  classNames={{
-                    input: 'text-base',
-                  }}
-                />
-                <Select
-                  label="種類"
-                  selectedKeys={type ? [type] : []}
-                  onSelectionChange={(keys) =>
-                    setType(Array.from(keys)[0] as string)
-                  }
-                >
-                  <SelectItem key="income" value="income">
-                    収入
-                  </SelectItem>
-                  <SelectItem key="expense" value="expense">
-                    支出
-                  </SelectItem>
-                </Select>
-                <Select
-                  label="カテゴリ"
-                  selectedKeys={category ? [category] : []}
-                  onSelectionChange={(keys) =>
-                    setCategory(Array.from(keys)[0] as string)
-                  }
-                >
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.key} value={cat.key}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </Select>
-                <Input
-                  label="日付"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  classNames={{
-                    input: 'text-base',
-                  }}
-                />
-                <Textarea
-                  label="説明"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  classNames={{
-                    input: 'text-base',
-                  }}
-                />
-              </ModalBody>
-              <ModalFooter className="flex-shrink-0">
-                <Button
-                  color="danger"
-                  onPress={() => setIsOpenCreateModal(false)}
-                >
-                  閉じる
-                </Button>
-                <Button
-                  color="primary"
-                  onPress={() => {
-                    handleCreateClick();
-                    setIsOpenCreateModal(false);
-                  }}
-                >
-                  作成
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      {/* 更新モーダル */}
-      <Modal
-        isOpen={isOpenUpdateModal}
-        placement="center"
-        onOpenChange={onOpenChangeUpdateModal}
-        className="m-4"
-        scrollBehavior="inside"
-        size="lg"
-      >
-        <ModalContent className="max-h-[80vh]">
-          {(onClose) => (
-            <>
-              <ModalHeader>取引を編集</ModalHeader>
-              <ModalBody className="overflow-y-auto">
-                <Input
-                  label="タイトル"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  classNames={{
-                    input: 'text-base',
-                  }}
-                />
-                <Input
-                  label="金額"
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  classNames={{
-                    input: 'text-base',
-                  }}
-                />
-                <Select
-                  label="種類"
-                  selectedKeys={type ? [type] : []}
-                  onSelectionChange={(keys) =>
-                    setType(Array.from(keys)[0] as string)
-                  }
-                >
-                  <SelectItem key="income" value="income">
-                    収入
-                  </SelectItem>
-                  <SelectItem key="expense" value="expense">
-                    支出
-                  </SelectItem>
-                </Select>
-                <Select
-                  label="カテゴリ"
-                  selectedKeys={category ? [category] : []}
-                  onSelectionChange={(keys) =>
-                    setCategory(Array.from(keys)[0] as string)
-                  }
-                >
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.key} value={cat.key}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </Select>
-                <Input
-                  label="日付"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  classNames={{
-                    input: 'text-base',
-                  }}
-                />
-                <Textarea
-                  label="説明"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  classNames={{
-                    input: 'text-base',
-                  }}
-                />
-              </ModalBody>
-              <ModalFooter className="flex-shrink-0">
-                <Button
-                  color="danger"
-                  onPress={() => setIsOpenUpdateModal(false)}
-                >
-                  閉じる
-                </Button>
-                <Button
-                  color="primary"
-                  onPress={() => {
-                    handleUpdateClick(currentId);
-                    setIsOpenUpdateModal(false);
-                  }}
-                >
-                  更新
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      {/* 削除確認モーダル */}
-      <Modal
-        isOpen={isOpenDeleteModal}
-        placement="center"
-        onOpenChange={onOpenChangeDeleteModal}
-        size="sm"
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="text-center">削除の確認</ModalHeader>
-              <ModalBody className="text-center">
-                <p className="text-gray-700 dark:text-gray-300">
-                  この取引を削除しますか？
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                  この操作は取り消すことができません。
-                </p>
-              </ModalBody>
-              <ModalFooter className="justify-center">
-                <Button
-                  color="default"
-                  variant="light"
-                  onPress={() => setIsOpenDeleteModal(false)}
-                >
-                  キャンセル
-                </Button>
-                <Button color="danger" onPress={handleConfirmDelete}>
-                  削除する
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      {/* 取引リスト */}
-      <div className="mt-4 pb-4">
-        {isTableView ? (
-          /* 履歴表示 */
-          <div>
-            {/* フィルター・ソートコントロール */}
-            <div className="mb-4">
-              {/* ヘッダー部分（常に表示） */}
-              <div
-                className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                onClick={() => setIsFilterExpanded(!isFilterExpanded)}
-              >
-                {/* PC・タブレット表示 */}
-                <div className="hidden sm:flex items-center gap-4">
-                  <FiSettings className="text-lg text-gray-600 dark:text-gray-400" />
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="flex items-center gap-1">
-                      {filter === 'all' ? (
-                        <FiBarChart className="text-blue-500" />
-                      ) : filter === 'income' ? (
-                        <FiTrendingUp className="text-green-500" />
-                      ) : (
-                        <FiTrendingDown className="text-red-500" />
-                      )}
-                      <span className="text-gray-600 dark:text-gray-400">
-                        {filter === 'all'
-                          ? '全て'
-                          : filter === 'income'
-                          ? '収入'
-                          : '支出'}
+        {/* スマホ用カード表示 */}
+        <div
+          className={`md:hidden ${
+            viewMode === 'view' ? 'space-y-1' : 'space-y-4'
+          }`}
+        >
+          {filteredTransactions.map((transaction) => (
+            <Card
+              key={transaction.key}
+              className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <CardBody className={viewMode === 'view' ? 'px-3 py-2' : 'p-4'}>
+                {viewMode === 'view' ? (
+                  // 履歴表示：1行コンパクト表示
+                  <div className="flex items-center w-full min-w-0">
+                    <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
+                      <div
+                        className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          transaction.type === 'income' ||
+                          transaction.type === '収入'
+                            ? 'bg-emerald-500'
+                            : 'bg-rose-500'
+                        }`}
+                      />
+                      <span
+                        className="text-sm text-slate-800 dark:text-white truncate max-w-[140px]"
+                        title={transaction.title}
+                      >
+                        {transaction.title}
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 ml-auto">
+                        {formatDate(transaction.date).replace(
+                          /(\d{4})\/(\d{2})\/(\d{2})/,
+                          '$2/$3',
+                        )}
                       </span>
                     </div>
-                    <span className="text-gray-400">•</span>
-                    <div className="flex items-center gap-1">
-                      {sortBy === 'date' ? (
-                        <FiCalendar className="text-gray-500" />
-                      ) : (
-                        <FiDollarSign className="text-gray-500" />
-                      )}
-                      <span className="text-gray-600 dark:text-gray-400">
-                        {sortBy === 'date' ? '日付' : '金額'}
-                      </span>
-                    </div>
-                    <span className="text-gray-400">•</span>
-                    <div className="flex items-center gap-1">
-                      {sortOrder === 'desc' ? (
-                        <FiArrowDown className="text-gray-500" />
-                      ) : (
-                        <FiArrowUp className="text-gray-500" />
-                      )}
-                      <span className="text-gray-600 dark:text-gray-400">
-                        {sortOrder === 'desc' ? '新→古' : '古→新'}
+                    <div className="ml-3 flex-shrink-0">
+                      <span
+                        className={`font-bold text-sm whitespace-nowrap ${
+                          transaction.type === 'income' ||
+                          transaction.type === '収入'
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-rose-600 dark:text-rose-400'
+                        }`}
+                      >
+                        {transaction.type === 'income' ||
+                        transaction.type === '収入'
+                          ? '+'
+                          : '-'}
+                        ¥{formatAmount(transaction.amount)}
                       </span>
                     </div>
                   </div>
-                </div>
-
-                {/* スマホ表示 */}
-                <div className="sm:hidden flex items-center gap-3">
-                  <FiSettings className="text-lg text-gray-600 dark:text-gray-400" />
-                  <div className="flex items-center gap-2">
-                    {filter === 'all' ? (
-                      <FiBarChart className="text-blue-500" />
-                    ) : filter === 'income' ? (
-                      <FiTrendingUp className="text-green-500" />
-                    ) : (
-                      <FiTrendingDown className="text-red-500" />
-                    )}
-                    {sortBy === 'date' ? (
-                      <FiCalendar className="text-gray-500" />
-                    ) : (
-                      <FiDollarSign className="text-gray-500" />
-                    )}
-                    {sortOrder === 'desc' ? (
-                      <FiArrowDown className="text-gray-500" />
-                    ) : (
-                      <FiArrowUp className="text-gray-500" />
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                    <FiFileText className="text-sm" />
-                    <span>{filteredAndSortedTransactions.length}</span>
-                  </div>
-                  {isFilterExpanded ? (
-                    <FiChevronDown className="text-gray-500 dark:text-gray-400" />
-                  ) : (
-                    <FiChevronRight className="text-gray-500 dark:text-gray-400" />
-                  )}
-                </div>
-              </div>
-
-              {/* 展開部分（条件付き表示） */}
-              {isFilterExpanded && (
-                <div className="mt-2 flex flex-col sm:flex-row gap-3 p-4 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                  <Select
-                    label="表示"
-                    selectedKeys={[filter]}
-                    onSelectionChange={(keys) => {
-                      const newValue = Array.from(keys)[0] as
-                        | 'all'
-                        | 'income'
-                        | 'expense';
-                      if (newValue && newValue !== filter) {
-                        setFilter(newValue);
-                      }
-                    }}
-                    className="min-w-0 sm:w-32"
-                    size="sm"
-                  >
-                    <SelectItem key="all" value="all">
-                      全て
-                    </SelectItem>
-                    <SelectItem key="income" value="income">
-                      収入のみ
-                    </SelectItem>
-                    <SelectItem key="expense" value="expense">
-                      支出のみ
-                    </SelectItem>
-                  </Select>
-
-                  <Select
-                    label="並び順"
-                    selectedKeys={[sortBy]}
-                    onSelectionChange={(keys) => {
-                      const newValue = Array.from(keys)[0] as 'date' | 'amount';
-                      if (newValue && newValue !== sortBy) {
-                        setSortBy(newValue);
-                      }
-                    }}
-                    className="min-w-0 sm:w-32"
-                    size="sm"
-                  >
-                    <SelectItem key="date" value="date">
-                      日付順
-                    </SelectItem>
-                    <SelectItem key="amount" value="amount">
-                      金額順
-                    </SelectItem>
-                  </Select>
-
-                  <Button
-                    size="sm"
-                    variant="bordered"
-                    onPress={() =>
-                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                    }
-                    className="min-w-0 sm:w-24"
-                  >
-                    {sortOrder === 'desc' ? '↓ 降順' : '↑ 昇順'}
-                  </Button>
-                </div>
-              )}
-            </div>
-            {/* PC・タブレット用テーブル表示 */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <th className="px-2 py-1 text-left text-gray-600 dark:text-gray-300">
-                      日付
-                    </th>
-                    <th className="px-2 py-1 text-left text-gray-600 dark:text-gray-300">
-                      タイトル
-                    </th>
-                    <th className="px-2 py-1 text-left text-gray-600 dark:text-gray-300">
-                      カテゴリ
-                    </th>
-                    <th className="px-2 py-1 text-center text-gray-600 dark:text-gray-300">
-                      種類
-                    </th>
-                    <th className="px-2 py-1 text-right text-gray-600 dark:text-gray-300">
-                      金額
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredAndSortedTransactions.map((transaction) => (
-                    <tr
-                      key={transaction.key}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800"
-                    >
-                      <td className="px-2 py-1 text-gray-500 dark:text-gray-400">
-                        {transaction.date}
-                      </td>
-                      <td className="px-2 py-1 text-gray-900 dark:text-gray-100 font-medium">
-                        <div
-                          className="truncate max-w-xs"
+                ) : (
+                  // 編集表示：詳細表示
+                  <>
+                    <div className="flex items-start justify-between mb-3 w-full min-w-0">
+                      <div className="flex-1 min-w-0 max-w-[60%]">
+                        <h3
+                          className="font-semibold text-slate-800 dark:text-white text-base mb-1 truncate"
                           title={transaction.title}
                         >
                           {transaction.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                          <FiCalendar className="text-xs flex-shrink-0" />
+                          <span className="truncate">
+                            {formatDate(transaction.date)}
+                          </span>
                         </div>
-                      </td>
-                      <td className="px-2 py-1 text-gray-600 dark:text-gray-300">
-                        {transaction.category
-                          ? categories.find(
-                              (c) => c.key === transaction.category,
-                            )?.label || '-'
-                          : '-'}
-                      </td>
-                      <td className="px-2 py-1 text-center">
-                        {transaction.type === 'income' ? (
-                          <FiTrendingUp
-                            className="text-green-500 mx-auto"
-                            title="収入"
-                          />
-                        ) : (
-                          <FiTrendingDown
-                            className="text-red-500 mx-auto"
-                            title="支出"
-                          />
-                        )}
-                      </td>
-                      <td className="px-2 py-1 text-right font-bold">
-                        <span
-                          className={`${
-                            transaction.type === 'income'
-                              ? 'text-green-600 dark:text-green-400'
-                              : 'text-red-600 dark:text-red-400'
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-3">
+                        <div
+                          className={`text-xl font-bold whitespace-nowrap ${
+                            transaction.type === 'income' ||
+                            transaction.type === '収入'
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-rose-600 dark:text-rose-400'
                           }`}
                         >
-                          {transaction.type === 'income' ? '+' : '-'}¥
-                          {transaction.amount.toLocaleString()}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* スマホ用コンパクトリスト表示 */}
-            <div className="md:hidden space-y-1">
-              {filteredAndSortedTransactions.map((transaction) => (
-                <div
-                  key={transaction.key}
-                  className="bg-white dark:bg-gray-800 px-3 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
-                >
-                  <div className="flex justify-between items-center">
-                    <div className="flex-1 min-w-0 mr-3">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                        {transaction.title}
-                      </p>
-                      <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        <span>{transaction.date}</span>
-                        {transaction.type === 'income' ? (
-                          <FiTrendingUp className="text-green-500 w-3 h-3" />
-                        ) : (
-                          <FiTrendingDown className="text-red-500 w-3 h-3" />
-                        )}
-                        {transaction.category && (
-                          <span>
-                            {
-                              categories.find(
-                                (c) => c.key === transaction.category,
-                              )?.label
-                            }
-                          </span>
-                        )}
+                          {transaction.type === 'income' ||
+                          transaction.type === '収入'
+                            ? '+'
+                            : '-'}
+                          ¥{formatAmount(transaction.amount)}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span
-                        className={`font-bold text-sm ${
-                          transaction.type === 'income'
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-red-600 dark:text-red-400'
-                        }`}
-                      >
-                        {transaction.type === 'income' ? '+' : '-'}¥
-                        {transaction.amount.toLocaleString()}
-                      </span>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color={
+                            transaction.type === 'income' ||
+                            transaction.type === '収入'
+                              ? 'success'
+                              : 'danger'
+                          }
+                          startContent={
+                            transaction.type === 'income' ||
+                            transaction.type === '収入' ? (
+                              <FiTrendingUp className="text-xs" />
+                            ) : (
+                              <FiTrendingDown className="text-xs" />
+                            )
+                          }
+                          className="text-xs"
+                        >
+                          {transaction.type === 'income' ||
+                          transaction.type === '収入'
+                            ? '収入'
+                            : '支出'}
+                        </Chip>
+                        {transaction.category && (
+                          <Chip
+                            size="sm"
+                            variant="flat"
+                            color="default"
+                            className="text-xs"
+                          >
+                            {transaction.category}
+                          </Chip>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          color="primary"
+                          variant="flat"
+                          onPress={() => handleEditClick(transaction.id)}
+                          className="min-w-0 px-3 text-xs hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                        >
+                          編集
+                        </Button>
+                        <Button
+                          size="sm"
+                          color="danger"
+                          variant="flat"
+                          onClick={() => handleDeleteClick(transaction.id)}
+                          className="min-w-0 px-3 text-xs hover:bg-red-100 dark:hover:bg-red-900/30"
+                        >
+                          削除
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  </>
+                )}
+              </CardBody>
+            </Card>
+          ))}
+        </div>
+
+        {/* データがない場合の表示 */}
+        {filteredTransactions.length === 0 && (
+          <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-0 shadow-xl">
+            <CardBody className="p-12 text-center">
+              <div className="mb-4">
+                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 rounded-full flex items-center justify-center">
+                  <FiBarChart className="text-slate-500 dark:text-slate-400 text-2xl" />
                 </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          /* カード表示 */
-          <>
-            {(transactions || []).map((transaction) => (
-              <Card key={transaction.key} className="mb-4">
-                <CardHeader className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{transaction.title}</h3>
-                    <Chip
-                      color={
-                        transaction.type === 'income' ? 'success' : 'danger'
-                      }
-                      variant="flat"
-                      size="sm"
-                    >
-                      {transaction.type === 'income' ? '収入' : '支出'}
-                    </Chip>
-                  </div>
-                  <div className="text-right">
-                    <p
-                      className={`text-lg font-bold ${
-                        transaction.type === 'income'
-                          ? 'text-green-600 dark:text-green-400'
-                          : 'text-red-600 dark:text-red-400'
-                      }`}
-                    >
-                      {transaction.type === 'income' ? '+' : '-'}¥
-                      {transaction.amount.toLocaleString()}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {transaction.date}
-                    </p>
-                  </div>
-                </CardHeader>
-                <Divider />
-                <CardBody>
-                  {transaction.category && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                      カテゴリ:{' '}
-                      {
-                        categories.find((c) => c.key === transaction.category)
-                          ?.label
-                      }
-                    </p>
-                  )}
-                  {transaction.description && (
-                    <p className="text-sm text-gray-800 dark:text-gray-200">
-                      {transaction.description}
-                    </p>
-                  )}
-                </CardBody>
-                <Divider />
-                <CardFooter className="justify-end">
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      color="primary"
-                      variant="light"
-                      onPress={() => handleEditClick(transaction.id)}
-                    >
-                      編集
-                    </Button>
-                    <Button
-                      size="sm"
-                      color="danger"
-                      variant="light"
-                      onPress={() => handleDeleteClick(transaction.id)}
-                    >
-                      削除
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            ))}
-          </>
+              </div>
+              <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                データがありません
+              </h3>
+              <p className="text-slate-500 dark:text-slate-400 mb-6">
+                {viewMode === 'edit'
+                  ? '新しい収支を追加してください'
+                  : '条件に一致するデータがありません'}
+              </p>
+              {viewMode === 'edit' && (
+                <Button
+                  onPress={onOpenCreateModal}
+                  color="primary"
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                  startContent={<FiPlus />}
+                >
+                  最初の収支を追加
+                </Button>
+              )}
+            </CardBody>
+          </Card>
         )}
+
+        {/* 作成モーダル */}
+        <Modal
+          isOpen={isOpenCreateModal}
+          placement="center"
+          onOpenChange={onOpenChangeCreateModal}
+          className="m-4"
+          scrollBehavior="inside"
+          size="lg"
+        >
+          <ModalContent className="max-h-[80vh]">
+            {(onClose) => (
+              <>
+                <ModalHeader>収支を追加</ModalHeader>
+                <ModalBody className="overflow-y-auto">
+                  <Input
+                    label="タイトル"
+                    value={title}
+                    onChange={handleTitleChange}
+                    classNames={{
+                      input: 'text-base',
+                    }}
+                  />
+                  <Input
+                    label="金額"
+                    type="number"
+                    value={amount}
+                    onChange={handleAmountChange}
+                    classNames={{
+                      input: 'text-base',
+                    }}
+                  />
+                  <Select
+                    label="種類"
+                    selectedKeys={type ? [type] : []}
+                    onSelectionChange={(keys) =>
+                      setType(Array.from(keys)[0] as string)
+                    }
+                  >
+                    <SelectItem key="income" value="income">
+                      収入
+                    </SelectItem>
+                    <SelectItem key="expense" value="expense">
+                      支出
+                    </SelectItem>
+                  </Select>
+                  <Select
+                    label="カテゴリ"
+                    selectedKeys={category ? [category] : []}
+                    onSelectionChange={(keys) =>
+                      setCategory(Array.from(keys)[0] as string)
+                    }
+                  >
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.key} value={cat.key}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </Select>
+                  <Input
+                    label="日付"
+                    type="date"
+                    value={date}
+                    onChange={handleDateChange}
+                    classNames={{
+                      input: 'text-base',
+                    }}
+                  />
+                  <Textarea
+                    label="説明"
+                    value={description}
+                    onChange={handleDescriptionChange}
+                    classNames={{
+                      input: 'text-base',
+                    }}
+                  />
+                </ModalBody>
+                <ModalFooter className="flex-shrink-0">
+                  <Button
+                    color="danger"
+                    onPress={() => setIsOpenCreateModal(false)}
+                  >
+                    閉じる
+                  </Button>
+                  <Button
+                    color="primary"
+                    onPress={() => {
+                      handleCreateClick();
+                      setIsOpenCreateModal(false);
+                    }}
+                  >
+                    作成
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
+
+        {/* 更新モーダル */}
+        <Modal
+          isOpen={isOpenUpdateModal}
+          placement="center"
+          onOpenChange={onOpenChangeUpdateModal}
+          className="m-4"
+          scrollBehavior="inside"
+          size="lg"
+        >
+          <ModalContent className="max-h-[80vh]">
+            {(onClose) => (
+              <>
+                <ModalHeader>収支を編集</ModalHeader>
+                <ModalBody className="overflow-y-auto">
+                  <Input
+                    label="タイトル"
+                    value={title}
+                    onChange={handleTitleChange}
+                    classNames={{
+                      input: 'text-base',
+                    }}
+                  />
+                  <Input
+                    label="金額"
+                    type="number"
+                    value={amount}
+                    onChange={handleAmountChange}
+                    classNames={{
+                      input: 'text-base',
+                    }}
+                  />
+                  <Select
+                    label="種類"
+                    selectedKeys={type ? [type] : []}
+                    onSelectionChange={(keys) =>
+                      setType(Array.from(keys)[0] as string)
+                    }
+                  >
+                    <SelectItem key="income" value="income">
+                      収入
+                    </SelectItem>
+                    <SelectItem key="expense" value="expense">
+                      支出
+                    </SelectItem>
+                  </Select>
+                  <Select
+                    label="カテゴリ"
+                    selectedKeys={category ? [category] : []}
+                    onSelectionChange={(keys) =>
+                      setCategory(Array.from(keys)[0] as string)
+                    }
+                  >
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.key} value={cat.key}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </Select>
+                  <Input
+                    label="日付"
+                    type="date"
+                    value={date}
+                    onChange={handleDateChange}
+                    classNames={{
+                      input: 'text-base',
+                    }}
+                  />
+                  <Textarea
+                    label="説明"
+                    value={description}
+                    onChange={handleDescriptionChange}
+                    classNames={{
+                      input: 'text-base',
+                    }}
+                  />
+                </ModalBody>
+                <ModalFooter className="flex-shrink-0">
+                  <Button
+                    color="danger"
+                    onPress={() => setIsOpenUpdateModal(false)}
+                  >
+                    閉じる
+                  </Button>
+                  <Button
+                    color="primary"
+                    onPress={() => {
+                      handleUpdateClick(currentId);
+                      setIsOpenUpdateModal(false);
+                    }}
+                  >
+                    更新
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
+
+        {/* 削除確認モーダル */}
+        <Modal
+          isOpen={isOpenDeleteModal}
+          placement="center"
+          onOpenChange={onOpenChangeDeleteModal}
+          size="sm"
+        >
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="text-center">削除の確認</ModalHeader>
+                <ModalBody className="text-center">
+                  <p className="text-gray-700 dark:text-gray-300">
+                    この取引を削除しますか？
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    この操作は取り消すことができません。
+                  </p>
+                </ModalBody>
+                <ModalFooter className="justify-center">
+                  <Button
+                    color="default"
+                    variant="light"
+                    onPress={() => setIsOpenDeleteModal(false)}
+                  >
+                    キャンセル
+                  </Button>
+                  <Button color="danger" onPress={handleConfirmDelete}>
+                    削除する
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       </div>
     </div>
   );
