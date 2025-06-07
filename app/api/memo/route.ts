@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function DELETE(request: NextRequest) {
   const id = parseInt(request.nextUrl.searchParams.get('id')!);
@@ -42,10 +40,10 @@ export async function GET(request: NextRequest) {
 }
 
 async function getAllMemos() {
-    const memos = await prisma.memos.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return memos;
-  }
+  const memos = await prisma.memos.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+  return memos;
+}

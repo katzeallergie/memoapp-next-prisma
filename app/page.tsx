@@ -15,7 +15,6 @@ import {
   ModalFooter,
   ModalHeader,
   Textarea,
-  useDisclosure,
 } from '@nextui-org/react';
 
 interface DataType {
@@ -106,16 +105,15 @@ export default function Home() {
     setContent('');
   };
 
-  const {
-    isOpen: isOpenCreateModal,
-    onOpen: onOpenCreateModal,
-    onOpenChange: onOpenChangeCreateModal,
-  } = useDisclosure();
-  const {
-    isOpen: isOpenUpdateModal,
-    onOpen: onOpenUpdateModal,
-    onOpenChange: onOpenChangeUpdateModal,
-  } = useDisclosure();
+  const [isOpenCreateModal, setIsOpenCreateModal] = useState(false);
+  const [isOpenUpdateModal, setIsOpenUpdateModal] = useState(false);
+
+  const onOpenCreateModal = () => setIsOpenCreateModal(true);
+  const onOpenUpdateModal = () => setIsOpenUpdateModal(true);
+  const onOpenChangeCreateModal = () =>
+    setIsOpenCreateModal(!isOpenCreateModal);
+  const onOpenChangeUpdateModal = () =>
+    setIsOpenUpdateModal(!isOpenUpdateModal);
 
   const reset = () => {
     setTitle('');
@@ -124,13 +122,28 @@ export default function Home() {
 
   return (
     <div className="h-screen p-8">
-      <h1 className="text-xl text-center">クソ雑MemoApp</h1>
-      <div className="w-full my-6 flex">
-        <Button
-          onPress={onOpenCreateModal}
-          color="primary"
-          className="ml-auto mr-0 mt-0 mb-0"
-        >
+      <h1 className="text-xl text-center mb-6">クソ雑MemoApp</h1>
+
+      {/* ナビゲーション */}
+      <div className="w-full mb-6 flex justify-center">
+        <div className="flex gap-4 bg-gray-100 p-2 rounded-lg">
+          <Button as="a" href="/" color="primary" variant="solid" size="sm">
+            メモ
+          </Button>
+          <Button
+            as="a"
+            href="/transactions"
+            color="default"
+            variant="light"
+            size="sm"
+          >
+            収支表
+          </Button>
+        </div>
+      </div>
+
+      <div className="w-full mb-6 flex justify-end">
+        <Button onPress={onOpenCreateModal} color="primary">
           メモを追加
         </Button>
       </div>
@@ -164,13 +177,16 @@ export default function Home() {
                 ></Textarea>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" onPress={onClose}>
+                <Button
+                  color="danger"
+                  onPress={() => setIsOpenCreateModal(false)}
+                >
                   閉じる
                 </Button>
                 <Button
                   onClick={() => {
                     handleCreateClick();
-                    onClose();
+                    setIsOpenCreateModal(false);
                   }}
                   color="primary"
                 >
@@ -247,7 +263,7 @@ export default function Home() {
                         <Button
                           color="danger"
                           onPress={() => {
-                            onClose();
+                            setIsOpenUpdateModal(false);
                           }}
                         >
                           閉じる
@@ -255,7 +271,7 @@ export default function Home() {
                         <Button
                           onClick={() => {
                             handleUpdateClick(currentId);
-                            onClose();
+                            setIsOpenUpdateModal(false);
                           }}
                           color="primary"
                         >

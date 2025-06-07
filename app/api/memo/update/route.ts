@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   const { id, title, content } = await request.json();
@@ -20,6 +18,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(memos);
 }
 
+// TOOD: 共通化したい。apiディレクトリ内でexportするとbuildエラーになる
 async function getAllMemos() {
   const memos = await prisma.memos.findMany({
     orderBy: {

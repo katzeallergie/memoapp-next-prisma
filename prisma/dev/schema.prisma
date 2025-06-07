@@ -19,3 +19,15 @@ model memos {
   content String
   createdAt DateTime @default(now())
 }
+
+model transactions {
+  id Int @id @default(autoincrement())
+  title String
+  amount Float
+  type String // "income" or "expense"
+  category String?
+  description String?
+  date DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
