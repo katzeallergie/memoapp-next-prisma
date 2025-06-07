@@ -290,31 +290,79 @@ export default function TransactionsPage() {
       {/* 収支サマリー - カード表示時のみ */}
       {!isTableView && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="bg-green-50">
-            <CardBody className="text-center">
-              <h3 className="text-lg font-semibold text-green-700">収入</h3>
-              <p className="text-2xl font-bold text-green-800">
+          {/* 収入カード */}
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
+            <CardBody className="text-center p-4">
+              <div className="flex justify-center items-center gap-2 mb-2">
+                <div className="p-1.5 bg-green-500 rounded-full">
+                  <FiTrendingUp className="text-white text-sm" />
+                </div>
+                <h3 className="text-sm font-semibold text-green-700 dark:text-green-300">
+                  収入
+                </h3>
+              </div>
+              <p className="text-xl font-bold text-green-800 dark:text-green-200">
                 ¥{totalIncome.toLocaleString()}
               </p>
             </CardBody>
           </Card>
-          <Card className="bg-red-50">
-            <CardBody className="text-center">
-              <h3 className="text-lg font-semibold text-red-700">支出</h3>
-              <p className="text-2xl font-bold text-red-800">
+
+          {/* 支出カード */}
+          <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-700">
+            <CardBody className="text-center p-4">
+              <div className="flex justify-center items-center gap-2 mb-2">
+                <div className="p-1.5 bg-red-500 rounded-full">
+                  <FiTrendingDown className="text-white text-sm" />
+                </div>
+                <h3 className="text-sm font-semibold text-red-700 dark:text-red-300">
+                  支出
+                </h3>
+              </div>
+              <p className="text-xl font-bold text-red-800 dark:text-red-200">
                 ¥{totalExpense.toLocaleString()}
               </p>
             </CardBody>
           </Card>
-          <Card className={balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}>
-            <CardBody className="text-center">
-              <h3 className="text-lg font-semibold text-blue-700">収支</h3>
+
+          {/* 収支カード */}
+          <Card
+            className={`bg-gradient-to-br ${
+              balance >= 0
+                ? 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700'
+                : 'from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-700'
+            }`}
+          >
+            <CardBody className="text-center p-4">
+              <div className="flex justify-center items-center gap-2 mb-2">
+                <div
+                  className={`p-1.5 rounded-full ${
+                    balance >= 0 ? 'bg-blue-500' : 'bg-orange-500'
+                  }`}
+                >
+                  {balance >= 0 ? (
+                    <FiBarChart className="text-white text-sm" />
+                  ) : (
+                    <FiTrendingDown className="text-white text-sm" />
+                  )}
+                </div>
+                <h3
+                  className={`text-sm font-semibold ${
+                    balance >= 0
+                      ? 'text-blue-700 dark:text-blue-300'
+                      : 'text-orange-700 dark:text-orange-300'
+                  }`}
+                >
+                  収支
+                </h3>
+              </div>
               <p
-                className={`text-2xl font-bold ${
-                  balance >= 0 ? 'text-blue-800' : 'text-orange-800'
+                className={`text-xl font-bold ${
+                  balance >= 0
+                    ? 'text-blue-800 dark:text-blue-200'
+                    : 'text-orange-800 dark:text-orange-200'
                 }`}
               >
-                ¥{balance.toLocaleString()}
+                {balance >= 0 ? '+' : ''}¥{balance.toLocaleString()}
               </p>
             </CardBody>
           </Card>
