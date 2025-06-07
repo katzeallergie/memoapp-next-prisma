@@ -327,22 +327,30 @@ export default function TransactionsPage() {
         placement="center"
         onOpenChange={onOpenChangeCreateModal}
         className="m-4"
+        scrollBehavior="inside"
+        size="lg"
       >
-        <ModalContent>
+        <ModalContent className="max-h-[80vh]">
           {(onClose) => (
             <>
               <ModalHeader>取引を追加</ModalHeader>
-              <ModalBody>
+              <ModalBody className="overflow-y-auto">
                 <Input
                   label="タイトル"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  classNames={{
+                    input: 'text-base',
+                  }}
                 />
                 <Input
                   label="金額"
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
+                  classNames={{
+                    input: 'text-base',
+                  }}
                 />
                 <Select
                   label="種類"
@@ -376,14 +384,20 @@ export default function TransactionsPage() {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
+                  classNames={{
+                    input: 'text-base',
+                  }}
                 />
                 <Textarea
                   label="説明"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  classNames={{
+                    input: 'text-base',
+                  }}
                 />
               </ModalBody>
-              <ModalFooter>
+              <ModalFooter className="flex-shrink-0">
                 <Button
                   color="danger"
                   onPress={() => setIsOpenCreateModal(false)}
@@ -411,22 +425,30 @@ export default function TransactionsPage() {
         placement="center"
         onOpenChange={onOpenChangeUpdateModal}
         className="m-4"
+        scrollBehavior="inside"
+        size="lg"
       >
-        <ModalContent>
+        <ModalContent className="max-h-[80vh]">
           {(onClose) => (
             <>
               <ModalHeader>取引を編集</ModalHeader>
-              <ModalBody>
+              <ModalBody className="overflow-y-auto">
                 <Input
                   label="タイトル"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  classNames={{
+                    input: 'text-base',
+                  }}
                 />
                 <Input
                   label="金額"
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
+                  classNames={{
+                    input: 'text-base',
+                  }}
                 />
                 <Select
                   label="種類"
@@ -460,14 +482,20 @@ export default function TransactionsPage() {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
+                  classNames={{
+                    input: 'text-base',
+                  }}
                 />
                 <Textarea
                   label="説明"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  classNames={{
+                    input: 'text-base',
+                  }}
                 />
               </ModalBody>
-              <ModalFooter>
+              <ModalFooter className="flex-shrink-0">
                 <Button
                   color="danger"
                   onPress={() => setIsOpenUpdateModal(false)}
