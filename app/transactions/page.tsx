@@ -387,7 +387,7 @@ export default function TransactionsPage() {
                   className="transition-all duration-200 flex-1"
                   startContent={<FiList className="text-base" />}
                 >
-                  編集可能
+                  サマリー
                 </Button>
                 <Button
                   color={viewMode === 'view' ? 'primary' : 'default'}
@@ -658,7 +658,11 @@ export default function TransactionsPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredTransactions.map((transaction) => (
-                    <TableRow key={transaction.key}>
+                    <TableRow
+                      key={transaction.key}
+                      className="cursor-pointer"
+                      onClick={() => handleEditClick(transaction.id)}
+                    >
                       <TableCell>
                         <span
                           className={`${
@@ -756,7 +760,10 @@ export default function TransactionsPage() {
                       <TableCell
                         className={viewMode === 'view' ? 'hidden' : ''}
                       >
-                        <div className="flex gap-2">
+                        <div
+                          className="flex gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <Button
                             size="sm"
                             color="primary"
@@ -796,7 +803,11 @@ export default function TransactionsPage() {
               key={transaction.key}
               className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-0 shadow-lg hover:shadow-xl transition-all duration-200"
             >
-              <CardBody className={viewMode === 'view' ? 'px-3 py-2' : 'p-4'}>
+              <CardBody
+                className={viewMode === 'view' ? 'px-3 py-2' : 'p-4'}
+                onClick={() => handleEditClick(transaction.id)}
+                style={{ cursor: 'pointer' }}
+              >
                 {viewMode === 'view' ? (
                   // 履歴表示：コンパクト表示（タイトル2行対応）
                   <div className="flex items-center w-full min-w-0">
@@ -914,7 +925,10 @@ export default function TransactionsPage() {
                         )}
                       </div>
 
-                      <div className="flex gap-2">
+                      <div
+                        className="flex gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Button
                           size="sm"
                           color="primary"
